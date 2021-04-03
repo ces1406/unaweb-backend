@@ -36,7 +36,7 @@ class Applicacion {
         this.app.use('/secciones',rutasSecciones.router);
         this.app.use('/usuarios',rutasUsuarios.router);
         this.app.use('/temas',rutasTemas.router);
-        this.app.get('/prueba',(req,res)=>{res.status(200).json({'prueba':'OK'})})
+        this.app.get('/prueba',(req,res)=>{res.status(200).json({'prueba':'rta->OK'})})
     }
     handleCors = (req,res,next)=>{
         res.set('Access-Control-Allow-Origin','*');
