@@ -33,8 +33,8 @@ class Applicacion {
         const rutasSecciones = new RutasSecciones();
         const rutasUsuarios = new RutasUsuarios();
         const rutasTemas = new RutasTemas();
-        this.app.use('/sections',rutasSecciones.router);
-        this.app.use('/user',rutasUsuarios.router);
+        this.app.use('/secciones',rutasSecciones.router);
+        this.app.use('/usuarios',rutasUsuarios.router);
         this.app.use('/temas',rutasTemas.router);
     }
     handleCors = (req,res,next)=>{
