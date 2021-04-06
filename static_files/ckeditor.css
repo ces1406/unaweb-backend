@@ -1,0 +1,18 @@
+@import url('https://fonts.googleapis.com/css?family=Montserrat:100,200,300,400,500,600,700,800');
+*{
+    background-color: rgb(222, 232, 241)!important;
+}
+body{
+    word-wrap: break-word;
+}
+p {
+    font-family: 'Montserrat', sans-serif;
+    line-height:1.2 !important;
+    font-size:1.6ex !important;
+    font-weight: 500 !important;
+    margin: 0.2ex 0ex 0ex 0ex !important;
+}
+img {
+    max-width: 100%;
+    height: auto !important;
+}
