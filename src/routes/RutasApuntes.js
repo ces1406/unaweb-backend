@@ -57,7 +57,8 @@ class RutasApuntes {
             for await(const elem of rta) { 
                 elem.dirurl = validator.unescape(elem.dirurl);
             }
-            return res.status(201).json(rta);
+            let cantApunt = await Apuntes.count();
+            return res.status(201).json({apuntes:rta,cantApuntes:cantApunt});
         } catch (err) {
             res.status(500).send();
         }
