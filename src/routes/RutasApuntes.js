@@ -56,6 +56,10 @@ class RutasApuntes {
             })
             for await(const elem of rta) { 
                 elem.dirurl = validator.unescape(elem.dirurl);
+                elem.autores = validator.unescape(elem.autores);
+                elem.titulo = validator.unescape(elem.titulo);
+                elem.catedra = validator.unescape(elem.catedra);
+                elem.materia = validator.unescape(elem.materia);
             }
             let cantApunt = await Apuntes.count(
                 {where:{
