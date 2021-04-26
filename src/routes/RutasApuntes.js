@@ -47,7 +47,8 @@ class RutasApuntes {
                     [Op.and]:[
                         {autores:{[Op.like]:'%'+req.body.autor+'%'}},
                         {materia:{[Op.like]:'%'+req.body.materia+'%'}},
-                        {titulo:{[Op.like]:'%'+req.body.titulo+'%'}}
+                        {titulo:{[Op.like]:'%'+req.body.titulo+'%'}},
+                        {catedra:{[Op.like]:'%'+req.body.catedra+'%'}}
                     ]
                 },
                 order:[['fechaSubida','ASC']],
@@ -66,7 +67,8 @@ class RutasApuntes {
                     [Op.and]:[
                         {autores:{[Op.like]:'%'+req.body.autor+'%'}},
                         {materia:{[Op.like]:'%'+req.body.materia+'%'}},
-                        {titulo:{[Op.like]:'%'+req.body.titulo+'%'}}
+                        {titulo:{[Op.like]:'%'+req.body.titulo+'%'}},
+                        {catedra:{[Op.like]:'%'+req.body.catedra+'%'}}
                     ]
                 }
             });

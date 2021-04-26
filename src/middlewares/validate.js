@@ -36,6 +36,7 @@ const validadUserRecup = (req, res, next) => {
 }
 const validaApunte = (req,res,next) => {
     if ((req.body.titulo != undefined && req.body.titulo.length > 100) || 
+        (req.body.autor != undefined && req.body.autor.length > 120) || 
         (req.body.materia != undefined && req.body.materia.length > 120) || 
         (req.body.catedra != undefined && req.body.catedra.length > 100) ) {
         res.status(201).send({ msj: 'Algunos campos son demasiado extensos' })        

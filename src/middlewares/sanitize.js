@@ -36,6 +36,7 @@ const sanitizaApunte = (req,res,next) => {
     if(req.body.titulo != undefined){req.body.titulo = validator.escape(validator.trim(req.body.titulo));}
     if(req.body.materia != undefined) {req.body.materia = validator.escape(validator.trim(req.body.materia));}
     if(req.body.catedra != undefined) {req.body.catedra = validator.escape(validator.trim(req.body.catedra));}
+    if(req.body.autor != undefined) {req.body.autor = validator.escape(validator.trim(req.body.autor));}
     next();
 }
 const sanitizaLink = (req,res,next) => {  
