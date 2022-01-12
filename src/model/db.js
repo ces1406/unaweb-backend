@@ -45,7 +45,7 @@ const ComentariosCatedra = sequelize.define('ComentarioDeCatedra',{
     idComentario:{type: DataTypes.INTEGER, allowNull:false, autoIncrement:true ,unique:true, primaryKey:true},
     contenido:{type: DataTypes.TEXT, allowNull:false},
     fechaHora:{type: DataTypes.DATE}
-},{timestamps:false, tableName:'unaComentarioXcatedras'});
+},{timestamps:false, tableName:'unaComentarioXcatedra'});
 const Temas = sequelize.define('unaTema',{
     idTema :{type: DataTypes.INTEGER, allowNull:false, autoIncrement:true ,unique:true, primaryKey:true},
     titulo :{type: DataTypes.STRING(180), allowNull:false},

@@ -90,10 +90,10 @@ class RutasUsuarios {
                     redSocial3:req.body.youtube });
                 return {user,token};
             })
-            .then(rta => {
+            .then(rta => {                
                 let asunto = 'Registro en el sitio UNAweb';
                 let contenido = 'Hola '+req.body.apodo+', haz click en el siguiente enlace para finalizar tu registro en el sitio:\n';
-                contenido += process.env.URL_BACKEND + '/user/confirmregister/' + rta.user.idUsuario+ '/' + rta.token;              
+                contenido += process.env.URL_BACKEND + '/usuarios/confirmregister/' + rta.user.idUsuario+ '/' + rta.token;              
                 mailer(req.body.mail,asunto,contenido);
             })
             .then(rta => {

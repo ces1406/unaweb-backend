@@ -24,7 +24,7 @@ class RutasSecciones {
             }
             res.status(200).json({secciones})
         } catch (err){
-            res.status(200).send({msg: errr.msg})
+            res.status(200).send({msg: err.msg})
         }        
     }
     getSection = async (req,res)=>{
