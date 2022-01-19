@@ -1,0 +1,34 @@
+// Select the database to use.
+use('unaWebDB');
+
+// Crear las colecciones:
+db.createCollection("unaSecciones");
+db.createCollection("unaUsuarios");
+db.createCollection("unaTemas");
+db.createCollection("unaComentarios");
+db.createCollection("unaComentarioXcatedra");
+db.createCollection("unaCatedras");
+db.createCollection("unaApuntes");
+
+// apodo:ADMIN pass:Adm123+* es el usuario inicial administrador :
+db.unaUsuarios.insert({
+    "apodo":"ADMIN",
+    "contrasenia":"$2b$10$iCiML5ANBV4JO9e0KZC1m.r8Rppt8S143fTq4OmNl5vqFntCB7BB2",
+    "mail":"ces1406@gmail.com",
+    "rol":"ADMI",
+    "estadoCuenta":"HABILIT",
+    "fechaIngreso": new Date()
+});
+
+db.unaSecciones.insertMany([
+    {"nombreSeccion":"Agenda","descripcion":"calendario y fechas de actividades y eventos","img":'1.png'},
+    {"nombreSeccion":"Temas generales","descripcion":"temas que no están en otras secciones","img":"2.png"},
+    {"nombreSeccion":"Cursos por cátedras","descripcion":"canal de comunicación organizado por los distintos cursos de cada una de las materias","img":"3.png"},
+    {"nombreSeccion":"Compra, venta e intercambio de materiales","descripcion":"compra, venta y canje de distintos materiales del rubro artístico","img":"4.png"},
+    {"nombreSeccion":"Exposiciones","descripcion":"avisos de actividades y exposiciones","img":"5.png"},
+    {"nombreSeccion":"Opiniones de cátedras y profesores","descripcion":"busca y deja opiniones sobre distintas materias, cátedras y profesores","img":"6.png"},
+    {"nombreSeccion":"Política interna","descripcion":"temas sobre la política interna de la UNA","img":"7.png"},
+    {"nombreSeccion":"Info académica y trámites","descripcion":"cuestiones académicas, dudas sobre trámites, inscripciones, certificados, etc.","img":"8.png"},
+    {"nombreSeccion":"Links y sitios relacionados","descripcion":"links a distintas paginas relacionadas con la UNA","img":"9.png"},
+    {"nombreSeccion":"Apuntes","descripcion":"aportes y búsquedas de apuntes","img":"10.png"}
+]);
