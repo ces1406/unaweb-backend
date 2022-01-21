@@ -1,7 +1,9 @@
 const {ExtractJwt} = require('passport-jwt');
 const StrategyJwt = require('passport-jwt').Strategy;
 const passport = require('passport');
-const {start,Usuarios} = require('../model/db');
+require('../model/connectdb');
+const {Usuarios} = require('../model/mongodb');
+//const {start,Usuarios} = require('../model/db');
 
 // Initializing passport and setting his verification's callback:
 var opts = {};
@@ -9,8 +11,9 @@ opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
 opts.secretOrKey = process.env.JWT_SECRET;
 
 const verifyCallback = async (jwtPayload,done)=>{ 
-    start();
-    let user = await Usuarios.findOne({where:{idUsuario:jwtPayload.id}});
+    //start();
+    //let user = await Usuarios.findOne({where:{idUsuario:jwtPayload.id}});
+    let user = await Usuarios.findOne({_id:jwtPayload.id})
     done(null,true,{usuario:{apodo:jwtPayload.nick,idUser:jwtPayload.id,rol:jwtPayload.rol}});
 }
 const pasaporteJwt = new StrategyJwt(opts,verifyCallback);
