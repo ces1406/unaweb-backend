@@ -1,9 +1,8 @@
 const {Router} = require('express');
 const RutasApuntes = require('./RutasApuntes');
 const RutasCursos = require('./RutasCursos');
-const path = require('path');
-const {start,Secciones,ComentariosCatedra,Temas,Comentarios,Usuarios,Catedras} = require('../model/db');
-const {Op} = require('sequelize');
+require('../model/connectdb');
+const { Catedras, Secciones, Temas, Comentarios, ComentariosCatedras} = require('../model/mongodb');
 const {sanitizaTema,sanitizaComentario} = require('../middlewares/sanitize');
 const {validaTema,validaComentario} = require('../middlewares/validate');
 const isAdmin = require('../middlewares/isAdmin');
@@ -25,51 +24,41 @@ class RutasTemas {
     }
     getTema = async (req,res)=>{
         try {
-            let rta = await Temas.findOne({
-                include:[{
-                    model:Usuarios,
-                    required:true,
-                    attributes:['apodo','dirImg','redSocial1','redSocial2','redSocial3'],                    
-                }],
-                where:{idTema:req.params.idTema}
+            await Temas.findOne({idTema:req.params.idTema}).populate('idUsuario').exec((err,rta)=>{
+                rta.dataValues.cantComents = await Comentarios.count({where:{idTema:req.params.idTema}});
+                rta.comentarioInicial = validator.unescape(rta.comentarioInicial);
+                rta.Usuario.redSocial1 = (rta.Usuario.redSocial1 == undefined)? null : validator.unescape(rta.Usuario.redSocial1);
+                rta.Usuario.redSocial2 = (rta.Usuario.redSocial2 == undefined)? null : validator.unescape(rta.Usuario.redSocial2);
+                rta.Usuario.redSocial3 = (rta.Usuario.redSocial3 == undefined)? null : validator.unescape(rta.Usuario.redSocial3);
+                return res.status(200).json({rta})
             });
-            rta.dataValues.cantComents = await Comentarios.count({where:{idTema:req.params.idTema}});
-            rta.comentarioInicial = validator.unescape(rta.comentarioInicial);
-            rta.Usuario.redSocial1 = (rta.Usuario.redSocial1 == undefined)? null : validator.unescape(rta.Usuario.redSocial1);
-            rta.Usuario.redSocial2 = (rta.Usuario.redSocial2 == undefined)? null : validator.unescape(rta.Usuario.redSocial2);
-            rta.Usuario.redSocial3 = (rta.Usuario.redSocial3 == undefined)? null : validator.unescape(rta.Usuario.redSocial3);
-            return res.status(200).json({rta})
         } catch (error) {
             res.status(500).send();
         }
     }
     getComentarios = async (req,res)=>{
         try {
-            let rta = await Comentarios.findAll({
-                include:[{
-                    model:Usuarios,
-                    required:true,
-                    attributes:['apodo','dirImg','redSocial1','redSocial2','redSocial3']
-                }],
-                where:{idTema:req.params.idTema},
-                order:[['fechaHora','ASC']],
-                offset:(req.params.pagActiva-1)*req.params.cantPorPag,
-                limit:parseInt(req.params.cantPorPag,10)
-            });
-            for await (let com of rta) {     
-                com.Usuario.redSocial1 = (com.Usuario.redSocial1 == undefined) ? null : validator.unescape(com.Usuario.redSocial1);
-                com.Usuario.redSocial2 = (com.Usuario.redSocial2 == undefined) ? null : validator.unescape(com.Usuario.redSocial2);
-                com.Usuario.redSocial3 = (com.Usuario.redSocial3 == undefined) ? null : validator.unescape(com.Usuario.redSocial3);  
-                com.contenido = validator.unescape(com.contenido);
-            }
-            return res.status(200).json(rta);
+            await Comentarios.find({idTema: req.params.idTema})
+                .sort({fechaHora: 'asc'})
+                .skip((req.params.pagActiva-1)*req.params.cantPorPag)
+                .limit(parseInt(req.params.cantPorPag,10))
+                .populate('idUsuario')
+                .exec(async(err,rta)=>{
+                    for await (let com of rta) {     
+                        com.Usuario.redSocial1 = (com.idUsuario.redSocial1 == undefined) ? null : validator.unescape(com.idUsuario.redSocial1);
+                        com.Usuario.redSocial2 = (com.idUsuario.redSocial2 == undefined) ? null : validator.unescape(com.idUsuario.redSocial2);
+                        com.Usuario.redSocial3 = (com.idUsuario.redSocial3 == undefined) ? null : validator.unescape(com.idUsuario.redSocial3);  
+                        com.contenido = validator.unescape(com.contenido);
+                    }
+                    return res.status(200).json(rta);
+                });
         } catch (error) {
             res.status(500).send();
         }        
     }
     postTema = async (req,res)=>{
         try {
-            await Temas.create({
+            let tema = await new Temas({
                 titulo:req.body.titulo,
                 idSeccion:req.body.idSec,
                 idUsuario:req.usuario.idUser,
@@ -77,8 +66,9 @@ class RutasTemas {
                 palabraClave2:req.body.pal2,
                 palabraClave3:req.body.pal3,
                 comentarioInicial:req.body.msj,
-                fechaCreacion:(new Date()).toJSON().slice(0,19).replace('T',' ')
-            })
+                fechaCreacion:new Date()
+            });
+            tema.save();
             res.status(201).send({ msj: 'el tema fue creado' })
         } catch (error) {
             res.status(500).send();
@@ -86,9 +76,7 @@ class RutasTemas {
     }
     deletTema = async (req,res)=>{
         try {
-            await Temas.destroy({
-                where:{idTema:req.body.idTema}
-            });
+            await Temas.findByIdAndDelete(req.body.idTema);
             res.status(201).send({ msj: 'el tema se elimino' });
         } catch (err) {
             return res.status(500).send();
@@ -96,12 +84,12 @@ class RutasTemas {
     }
     comentar = async (req,res)=>{
         try {
-            await Comentarios.create({
+            let coment = await new Comentarios({
                 contenido:req.body.comentario,
                 idTema:req.body.idTema,
                 idUsuario:req.usuario.idUser,
-                fechaHora:(new Date()).toJSON().slice(0,19).replace('T',' ')
-            })
+                fechaHora:new Date()
+            });
             res.status(201).send({ msg: 'tema comentado' })            
         } catch (error) {
             res.status(500).send();
@@ -109,42 +97,18 @@ class RutasTemas {
     }
     ultimosComentarios = async (req,res)=>{
         try {
-            let idSeccionCat = await Secciones.findOne({
-                where:{nombreSeccion:'Opiniones de cátedras y profesores'}
-            })
+            let idSeccionCat = await Secciones.find({nombreSeccion:'Opiniones de cátedras y profesores'});
             let rta =[];
-            let rta1 = await Comentarios.findAll({
-                include:[{
-                    model:Usuarios,
-                    required:true,
-                    attributes:['apodo','dirImg']
-                }],
-                order:[['fechaHora','DESC']],
-                limit:parseInt(10)
-            });
-            let rta2 = await ComentariosCatedra.findAll({
-                include:[{
-                    model:Usuarios,
-                    required:true,
-                    attributes:['apodo','dirImg']
-                }],
-                order:[['fechaHora','DESC']],
-                limit:parseInt(10)
-            });
+            let rta1 = await Comentarios.find().sort({fechaHora:-1}).limit(10).populate('idUsuario').exec();
+            let rta2 = await ComentariosCatedras.find().sort({fechaHora:-1}).limit(10).populate('idUsuario').exec();
             for await (let com of rta=(rta1.concat(rta2))) {
                 com.contenido = validator.unescape(com.contenido);
-                com.dataValues.mili=com.fechaHora.getTime();
+                com.mili=com.fechaHora.getTime();
                 if(com.idTema==undefined){
-                    com.dataValues.idSeccion=idSeccionCat.idSeccion;
-                    com.dataValues.origen=await Catedras.findOne({where:{idCatedra:com.idCatedra}});
+                    com.idSeccion=idSeccionCat.idSeccion;
+                    com.origen=await Catedras.findOne({idCatedra:com.idCatedra});
                 }else{
-                    com.dataValues.origen=await Temas.findOne({
-                        include:[{
-                            model:Secciones,
-                            required:true,
-                        }],
-                        where:{idTema:com.idTema}
-                    });
+                    com.origen= await Temas.findOne({idTema:com.idTema}).populate('idSeccion').exec();
                 }
             }
             return res.status(200).json(rta.sort((a,b)=>b.dataValues.mili-a.dataValues.mili).slice(0,10));
@@ -154,31 +118,20 @@ class RutasTemas {
     }
     buscaPalabra = async (req,res)=>{
         try {
-            let rta = null;
             req.params.palabra = validator.escape(validator.trim(req.params.palabra));
             if (req.params.palabra.length === 0 || req.params.palabra.length > 30) {
                 res.status(201).send({ msj: 'completa correctamente el comentario' });
             }else{
-                rta = await Temas.findAll({
-                    include:[{
-                        model:Secciones,
-                        required:true,
-                        attributes:['nombreSeccion','idSeccion']
-                    }],
-                    where:{
-                        [Op.or]:[
-                            {palabraClave1:{[Op.like]:'%'+req.params.palabra+'%'}},
-                            {palabraClave2:{[Op.like]:'%'+req.params.palabra+'%'}},
-                            {palabraClave3:{[Op.like]:'%'+req.params.palabra+'%'}}
-                        ]
-                    },
-                });
-                for await (let com of rta) { 
-                    com.fechaCreacion = new Date(com.fechaCreacion)
-                    com.dataValues.mili=com.fechaCreacion.getTime();
-                    com.comentarioInicial = validator.unescape(com.comentarioInicial);
-                }
-                return res.status(200).json(rta);
+                await Temas.find({$or:[{palabraClave1:new RegExp(req.params.palabra)},{palabraClave2:new RegExp(req.params.palabra)},{palabraClave3:new RegExp(req.params.palabra)}]})
+                    .populate('idSeccion')
+                    .exec(async(err,rta)=>{
+                        for await (let com of rta) { 
+                            com.fechaCreacion = new Date(com.fechaCreacion)
+                            com.mili = com.fechaCreacion.getTime();
+                            com.comentarioInicial = validator.unescape(com.comentarioInicial);
+                        }
+                        return res.status(200).json(rta);
+                    });
             } 
         } catch (error) {
             res.status(500).send();            

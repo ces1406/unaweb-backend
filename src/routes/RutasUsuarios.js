@@ -1,11 +1,11 @@
 const {Router} = require('express');
 const path = require('path');
-const {start,Usuarios} = require('../model/db');
+require('../model/connectdb');
+const { Usuarios} = require('../model/mongodb');
 const cargarImg = require('../middlewares/multer');
 const mailer = require ('../common_utilities/mailer');
 const {sanitizaRegistro, sanitizaLogin, sanitizaUserRecup} = require('../middlewares/sanitize');
 const {validaRegistro, validaLogin, validadUserRecup} = require('../middlewares/validate');
-const {Op} = require('sequelize');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const fs = require('fs');
@@ -22,7 +22,7 @@ class RutasUsuarios {
     }    
     mailExist = (unMail) => {
         return new Promise(async (res,rej)=>{
-            const cant = await Usuarios.count({where:{mail:unMail}});
+            const cant = await Usuarios.find({mail:unMail}).count();
             if(cant===0) {
                 res(true); //por devolver algo
             }else{
@@ -32,7 +32,7 @@ class RutasUsuarios {
     }
     nicknameExist = (unApodo) => {
         return new Promise(async (res,rej)=>{
-            const cant = await Usuarios.count({where:{apodo:unApodo}})
+            const cant = await Usuarios.find({apodo:unApodo}).count();
             if(cant===0) {
                 res(true);
             }else{
@@ -76,7 +76,7 @@ class RutasUsuarios {
             .then(salt => bcrypt.hash(req.body.pass1, salt) )
             .then(async(hash)=>{
                 let token = await this.crearRandomString();
-                var user = await Usuarios.create({
+                let user = await new Usuarios({
                     apodo:req.body.apodo,
                     contrasenia:hash,
                     mail:req.body.mail,
@@ -87,7 +87,10 @@ class RutasUsuarios {
                     dirImg: req.file? ('user-'+req.body.apodo+path.extname(req.file.originalname).toLowerCase() ): null,
                     redSocial1:req.body.facebook,
                     redSocial2:req.body.blog,
-                    redSocial3:req.body.youtube });
+                    redSocial3:req.body.youtube 
+                });
+                await user.save();
+
                 return {user,token};
             })
             .then(rta => {                
@@ -131,9 +134,10 @@ class RutasUsuarios {
     }
     habilitaUsuario = async (req,res)=>{
         try{      
-            let users = await Usuarios.findAll({where:{idUsuario:req.params.idUsuario}});        
+            let users = await Usuarios.find({idUsuario:req.params.idUsuario});        
             if (req.params.token === users[0].token){
-                await Usuarios.update({estadoCuenta:'HABILIT'},{where:{idUsuario:req.params.idUsuario}});
+                //await Usuarios.update({estadoCuenta:'HABILIT'},{where:{idUsuario:req.params.idUsuario}});
+                await Usuarios.findByIdAndUpdate(req.params.idUsuario,{estadoCuenta:'HABILIT'});
                 res.sendFile('index.html', {
                     root: path.join(__dirname, 'confirm'),
                     dotfiles: 'deny',
@@ -152,7 +156,8 @@ class RutasUsuarios {
     login = async (req,res)=>{
         try{
             if( await this.nicknameExist(req.body.apodo)) throw ({code:400});
-            let user = await Usuarios.findAll({where:{apodo:req.body.apodo}});
+            //let user = await Usuarios.findAll({where:{apodo:req.body.apodo}});
+            let user = await Usuarios.find({apodo:req.body.apodo})
             bcrypt.compare(req.body.password,user[0].contrasenia,(err,rta)=>{
                 if(rta){
                     if(err) throw err;
@@ -183,9 +188,9 @@ class RutasUsuarios {
     recuperarpassw = async (req,res)=>{
         try{
             if( await this.nicknameExist(req.body.apodo)) throw ({code:400});
-            if( await Usuarios.count({where:{mail:req.body.mail}}) === 0) {throw ({code:400});}
-            let user1 = await Usuarios.findAll({where:{apodo:req.body.apodo}});
-            let user2 = await Usuarios.findAll({where:{mail:req.body.mail}});
+            if( await Usuarios.find({mail:req.body.mail}).count() === 0) {throw ({code:400});}
+            let user1 = await Usuarios.findAll({apodo:req.body.apodo});
+            let user2 = await Usuarios.findAll({mail:req.body.mail});
             if(user1[0].idUsuario !== user2[0].idUsuario){
                 res.statusMessage = 'Error en el usuario o el mail indicado';
                 return res.status(401).send()
@@ -197,7 +202,8 @@ class RutasUsuarios {
                 mailer(req.body.mail,asunto,contenido);
                 bcrypt.hash(pass.toString('hex'), 10, (err, hash) => { 
                     if (err) throw ({ code: 500, msj: 'Tuvimos un inconviente, intenta mas tarde' });
-                    Usuarios.update({contrasenia:hash},{where:{idUsuario:user1[0].idUsuario}});
+                    //Usuarios.update({contrasenia:hash},{where:{idUsuario:user1[0].idUsuario}});
+                    await Usuarios.findByIdAndUpdate(user1[0].idUsuario, {contrasenia:hash});
                 });
                 res.status(201).send({ msj: 'Revisa tu correo para conocer tu nueva contraseña' })
             }            
@@ -226,7 +232,8 @@ class RutasUsuarios {
                                         res.statusMessage = 'Tuvimos un inconviente, intenta mas tarde' 
                                         res.status(500).send();
                                     }else{
-                                        Usuarios.update({dirImg:'user-'+req.usuario.apodo+path.extname(req.file.originalname).toLowerCase()},{where:{idUsuario:req.usuario.idUser}});
+                                        //Usuarios.update({dirImg:'user-'+req.usuario.apodo+path.extname(req.file.originalname).toLowerCase()},{where:{idUsuario:req.usuario.idUser}});
+                                        Usuarios.findByIdAndUpdate(req.usuario.idUser,{dirImg:'user-'+req.usuario.apodo+path.extname(req.file.originalname).toLowerCase()});
                                         res.status(201).send({ msj: 'La imagen fue reemplazada con exito' })
                                     }
                                 });
@@ -238,7 +245,8 @@ class RutasUsuarios {
                         validator.isEmpty(validator.escape(validator.trim(req.body.pass2)))) {
                         return res0.status(401).send()
                     } else {
-                        let usuario = await Usuarios.findAll({where:{idUsuario:req.usuario.idUser}});
+                        let usuario = await Usuarios.findAll({idUsuario:req.usuario.idUser});
+                        //let usuario = await Usuarios.findAll({where:{idUsuario:req.usuario.idUser}});
                         if (usuario[0] === undefined) return res0.status(401).send();
                         if (usuario[0].contrasenia) {
                             bcrypt.compare(req.body.pass0, usuario[0].contrasenia, (err, rta) => {
@@ -246,7 +254,8 @@ class RutasUsuarios {
                                     if (err) return res0.status(401).send();
                                     if (usuario[0].estadoCuenta === 'HABILIT') {
                                         bcrypt.hash(req.body.pass1, 10)
-                                            .then(passHashed => Usuarios.update({contrasenia:passHashed},{where:{idUsuario:req.usuario.idUser}}) )
+                                            //.then(passHashed => Usuarios.update({contrasenia:passHashed},{where:{idUsuario:req.usuario.idUser}}) )
+                                            .then(passHashed => Usuarios.findByIdAndUpdate(req.usuario.idUser,{contrasenia:passHashed}) )
                                             .then(rta => { res.status(201).send({ msj: 'tu contraseña ha sido modificada' }) })
                                             .catch((err) => {
                                                 res.statusMessage = err.msj || err;
@@ -272,9 +281,10 @@ class RutasUsuarios {
                     if (!validator.isEmail(validator.escape(validator.trim(req.body.mail)))) {
                         res.status(409).send()
                     } else {
-                        let user = await Usuarios.findOne({where:{mail:req.body.mail}})
+                        let user = await Usuarios.findOne({mail:req.body.mail})
                         if(user === null){
-                            await Usuarios.update({mail:req.body.mail},{where:{idUsuario:req.usuario.idUser}});
+                            await Usuarios.findByIdAndUpdate(req.usuario.idUser,{mail:req.body.mail});
+                            //await Usuarios.update({mail:req.body.mail},{where:{idUsuario:req.usuario.idUser}});
                             res.status(201).send({ msj: 'Se modifico tu dirección de mail'})
                         }else{
                             res.status(409).send();
@@ -283,7 +293,8 @@ class RutasUsuarios {
                     break;
                 case 'redSoc1':
                     let redSoc1 = (validator.trim(req.body.redSoc1)).startsWith('http')?validator.escape(validator.trim(req.body.redSoc1)):validator.escape('http://'+validator.trim(req.body.redSoc1));        
-                    Usuarios.update({redSocial1:redSoc1},{where:{idUsuario:req.usuario.idUser}})
+                    //Usuarios.update({redSocial1:redSoc1},{where:{idUsuario:req.usuario.idUser}})
+                    Usuarios.findByIdAndUpdate(req.usuario.idUser,{redSocial1:redSoc1})
                         .then(rta => {
                             res.status(201).send({ msj:'Se modifico tu dirección red social' })
                         })
@@ -294,7 +305,8 @@ class RutasUsuarios {
                     break;
                 case 'redSoc2':
                     let redSoc2 = (validator.trim(req.body.redSoc2)).startsWith('http')?validator.escape(validator.trim(req.body.redSoc2)):validator.escape('http://'+validator.trim(req.body.redSoc2));
-                    Usuarios.update({redSocial2:redSoc2},{where:{idUsuario:req.usuario.idUser}})
+                    //Usuarios.update({redSocial2:redSoc2},{where:{idUsuario:req.usuario.idUser}})
+                    Usuarios.findByIdAndUpdate(req.usuario.idUser,{redSocial2:redSoc2})
                         .then(rta => {
                             res.status(201).send({ msj:'Se modifico tu dirección red social' })
                         })
@@ -305,7 +317,8 @@ class RutasUsuarios {
                     break;
                 case 'redSoc3':
                     let redSoc3 = (validator.trim(req.body.redSoc3)).startsWith('http')?validator.escape(validator.trim(req.body.redSoc3)):validator.escape('http://'+validator.trim(req.body.redSoc3));
-                    Usuarios.update({redSocial3:redSoc3},{where:{idUsuario:req.usuario.idUser}})
+                    //Usuarios.update({redSocial3:redSoc3},{where:{idUsuario:req.usuario.idUser}})
+                    Usuarios.findByIdAndUpdate(req.usuario.idUser,{redSocial3:redSoc3})
                         .then(rta => {
                             res.status(201).send({ msj: 'Se modifico tu dirección red social' })
                         })
@@ -319,7 +332,8 @@ class RutasUsuarios {
                         if (validator.isEmpty(validator.escape(validator.trim(req.body.estado)))) {
                             res.status(409).send()
                         } else {
-                            Usuarios.update({estadoCuenta:req.body.estado},{where:{idUsuario:req.body.idUser}})
+                            //Usuarios.update({estadoCuenta:req.body.estado},{where:{idUsuario:req.body.idUser}})
+                            Usuarios.findByIdAndUpdate(req.body.idUser,{estadoCuenta:req.body.estado})
                                 .then(rta => {
                                     res.status(201).send({ msj:'Estado de cuanta del usuario modificado' })
                                 })
@@ -337,7 +351,7 @@ class RutasUsuarios {
     }
     getUsuarioData = async(req,res)=>{
         try {
-            let user = await Usuarios.findOne({where:{apodo:req.params.apodo}})
+            let user = await Usuarios.findOne({apodo:req.params.apodo})
             if(user==undefined){
                 return res.status(200).send()
             }else{
@@ -358,7 +372,7 @@ class RutasUsuarios {
     }
     getAvatar = async (req,res)=>{
         try{
-            let user = await Usuarios.findOne({where:{apodo:req.params.dir.slice(5, req.params.dir.lastIndexOf("."))}});
+            let user = await Usuarios.findOne({apodo:req.params.dir.slice(5, req.params.dir.lastIndexOf("."))});
             var img = fs.createReadStream(path.join(__dirname, '../../usersimgs', user.dirImg));
             img.on('open', () => {
                 res.set('Content-type', 'image/' + path.extname(req.params.dir).slice(1))

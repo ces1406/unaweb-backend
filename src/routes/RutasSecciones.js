@@ -1,7 +1,6 @@
 const {Router} = require('express');
-const path = require('path');
-const {start,Secciones,Temas,Catedras,Apuntes,Comentarios} = require('../model/db');
-const {Op} = require('sequelize');
+require('../model/connectdb');
+const { Catedras, Secciones, Apuntes, Temas, Comentarios} = require('../model/mongodb');
 const validator = require('validator');
 
 class RutasSecciones {
@@ -12,14 +11,15 @@ class RutasSecciones {
     }
     getSections = async (req,res)=>{
         try {
-            const secciones = await Secciones.findAll();
+            //const secciones = await Secciones.findAll();
+            const secciones = await Secciones.findOne();
             for await(let seccion of secciones) {
                 if(seccion.idSeccion===5){
-                    seccion.dataValues.cantTemas = await Catedras.count();
+                    seccion.cantTemas = await Catedras.find().count();
                 }else if(seccion.idSeccion===9){
-                    seccion.dataValues.cantTemas = await Apuntes.count();
+                    seccion.cantTemas = await Apuntes.find().count();
                 }else{
-                    seccion.dataValues.cantTemas = await Temas.count({where:{idSeccion:seccion.idSeccion}})  
+                    seccion.cantTemas = await Temas.find({idSeccion:seccion.idSeccion}).count();  
                 }                                              
             }
             res.status(200).json({secciones})
@@ -29,15 +29,19 @@ class RutasSecciones {
     }
     getSection = async (req,res)=>{
         try {
-            let temas = await Temas.findAll({
+            let temas = await Temas.findAll({idSeccion:req.params.idSec})
+                .sort({fechaCreacion: -1})
+                .skip((req.params.pagActiva-1)*req.params.cantTems)
+                .limit(parseInt(req.params.cantTems,10));
+            /* let temas = await Temas.findAll({
                 where:{idSeccion:req.params.idSec},
                 order:[['fechaCreacion','DESC']],
                 offset:(req.params.pagActiva-1)*req.params.cantTems,
                 limit:parseInt(req.params.cantTems,10)
-            });
+            }); */
             for await (let tema of temas) {      
                 tema.comentarioInicial = validator.unescape(tema.comentarioInicial);
-                tema.dataValues.cantComentarios = await Comentarios.count({where:{idTema:tema.idTema}});
+                tema.cantComentarios = await Comentarios.find({idTema:tema.idTema}).count();//await Comentarios.count({where:{idTema:tema.idTema}});
             }
             res.status(200).json({temas})
         } catch (error) {
@@ -46,7 +50,8 @@ class RutasSecciones {
     }
     checkSection = async (req,res)=>{
         try {
-            let busq = await Secciones.count({where:{[Op.and]:[{idSeccion:req.params.idSec},{nombreSeccion:req.params.nombSec}]}});
+            //let busq = await Secciones.count({where:{[Op.and]:[{idSeccion:req.params.idSec},{nombreSeccion:req.params.nombSec}]}});
+            let busq = await Secciones.find({idSeccion:req.params.idSec, nombreSeccion:req.params.nombSec}).count();
             res.status(200).json({rta:(busq!==0)?true:false})
         } catch (error) {
             res.status(500).send();            

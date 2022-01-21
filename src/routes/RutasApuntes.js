@@ -1,13 +1,10 @@
 const {Router} = require('express');
-const path = require('path');
-//const {start,Apuntes, Usuarios} = require('../model/db');
 require('../model/connectdb');
-const {Usuarios, Apuntes} = require('../model/mongodb');
+const { Apuntes} = require('../model/mongodb');
 const {sanitizaApunte, sanitizaLink} = require('../middlewares/sanitize');
 const {validaApunte, validaEnlace} = require('../middlewares/validate');
 const {autenticacionjwt} = require('../middlewares/passport');
 const isAdmin = require('../middlewares/isAdmin');
-const {Op} = require('sequelize');
 const validator = require('validator');
 
 class RutasApuntes {
