@@ -30,7 +30,7 @@ const usuariosSchema = new Schema({
     "redSocial1":String,
     "redSocial2":String,
     "redSocial3":String,
-    "redSocial4":String,
+    "redSocial4":String
 });
 const seccionesSchema = new Schema({
     "nombreSeccion":{
@@ -46,11 +46,11 @@ const seccionesSchema = new Schema({
 const temasSchema = new Schema({
     "idUsuario":{
         type:Schema.Types.ObjectId,
-        ref:"Usuarios"
+        ref:"unausuario"
     },
     "idSeccion":{
         type:Schema.Types.ObjectId,
-        ref:"Secciones"
+        ref:"unaseccione"
     },
     "titulo":{
         type:String,
@@ -78,13 +78,14 @@ const temasSchema = new Schema({
     }
 });
 const comentariosSchema = new Schema({
+    //"idComentario":Schema.Types.ObjectId,
     "idTema":{
         type:Schema.Types.ObjectId,
-        ref:"Temas"
+        ref:"unatema"
     },
     "idUsuario":{
         type:Schema.Types.ObjectId,
-        ref:"Usuarios"
+        ref:"unausuario"
     },
     "contenido":{
         type:String,
@@ -96,13 +97,14 @@ const comentariosSchema = new Schema({
     }
 });
 const comentariosCatedrasSchema = new Schema({
+    //"idComentario":Schema.Types.ObjectId,
     "idCatedra":{
         type:Schema.Types.ObjectId,
-        ref:"Catedras"
+        ref:"unacatedra"
     },
     "idUsuario":{
         type:Schema.Types.ObjectId,
-        ref:"Usuarios"
+        ref:"unausuario"
     },
     "contenido":{
         type:String,
@@ -114,9 +116,10 @@ const comentariosCatedrasSchema = new Schema({
     }
 });
 const catedrasSchema = new Schema({
+    //"idCatedra":Schema.Types.ObjectId,
     "idAutor":{
         type:Schema.Types.ObjectId,
-        ref:"Usuarios"
+        ref:"unausuario"
     },
     "catedra":{
         type:String,
@@ -136,9 +139,10 @@ const catedrasSchema = new Schema({
     }
 });
 const apuntesSchema = new Schema({
+    //"idApunte":Schema.Types.ObjectId,
     "usuario":{
         type:Schema.Types.ObjectId,
-        ref:"Usuarios"
+        ref:"unausuario"
     },
     "autores":{
         type:String,
@@ -166,10 +170,10 @@ const apuntesSchema = new Schema({
     }
 });
 
-exports.Usuarios = model('unaUsuarios',usuariosSchema);
-exports.Secciones = model('unaSecciones',seccionesSchema);
-exports.Temas = model('unaTemas',temasSchema);
-exports.Comentarios = model('unaComentarios',comentariosSchema);
-exports.ComentariosCatedras = model('unaComentarioXcatedra',comentariosCatedrasSchema);
-exports.Catedras = model('unaCatedras',catedrasSchema);
-exports.Apuntes = model('unaApuntes',apuntesSchema);
+exports.Usuarios = model('unausuario',usuariosSchema);
+exports.Secciones = model('unaseccione',seccionesSchema);
+exports.Temas = model('unatema',temasSchema);
+exports.Comentarios = model('unacomentario',comentariosSchema);
+exports.ComentariosCatedras = model('unacomentarioxcatedra',comentariosCatedrasSchema);
+exports.Catedras = model('unacatedra',catedrasSchema);
+exports.Apuntes = model('unaapunte',apuntesSchema);
