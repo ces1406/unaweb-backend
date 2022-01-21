@@ -2,16 +2,16 @@
 use('unaWebDB');
 
 // Crear las colecciones:
-db.createCollection("unaSecciones");
-db.createCollection("unaUsuarios");
-db.createCollection("unaTemas");
-db.createCollection("unaComentarios");
-db.createCollection("unaComentarioXcatedra");
-db.createCollection("unaCatedras");
-db.createCollection("unaApuntes");
+db.createCollection("unasecciones");
+db.createCollection("unausuarios");
+db.createCollection("unatemas");
+db.createCollection("unacomentarios");
+db.createCollection("unacomentarioXcatedras");
+db.createCollection("unacatedras");
+db.createCollection("unaapuntes");
 
 // apodo:ADMIN pass:Adm123+* es el usuario inicial administrador :
-db.unaUsuarios.insert({
+db.unausuarios.insert({
     "apodo":"ADMIN",
     "contrasenia":"$2b$10$iCiML5ANBV4JO9e0KZC1m.r8Rppt8S143fTq4OmNl5vqFntCB7BB2",
     "mail":"ces1406@gmail.com",
@@ -20,7 +20,7 @@ db.unaUsuarios.insert({
     "fechaIngreso": new Date()
 });
 
-db.unaSecciones.insertMany([
+db.unasecciones.insertMany([
     {"nombreSeccion":"Agenda","descripcion":"calendario y fechas de actividades y eventos","img":'1.png'},
     {"nombreSeccion":"Temas generales","descripcion":"temas que no están en otras secciones","img":"2.png"},
     {"nombreSeccion":"Cursos por cátedras","descripcion":"canal de comunicación organizado por los distintos cursos de cada una de las materias","img":"3.png"},
