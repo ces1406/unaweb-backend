@@ -1,6 +1,8 @@
 const {Router} = require('express');
 const path = require('path');
-const {start,Apuntes, Usuarios} = require('../model/db');
+//const {start,Apuntes, Usuarios} = require('../model/db');
+require('../model/connectdb');
+const {Usuarios, Apuntes} = require('../model/mongodb');
 const {sanitizaApunte, sanitizaLink} = require('../middlewares/sanitize');
 const {validaApunte, validaEnlace} = require('../middlewares/validate');
 const {autenticacionjwt} = require('../middlewares/passport');
@@ -11,24 +13,24 @@ const validator = require('validator');
 class RutasApuntes {
     constructor(){
         this.router = Router();
-        start();
         this.routes();
     }
     uploadApunte = async (req,res)=>{
         try {
-            if(await Apuntes.count({where:{dirurl:req.body.link}})!==0){
+            if(await Apuntes.count({dirurl:req.body.link})!==0){
                 res.statusMessage='Ya existe un enlace a ese apunte';
                 res.status(400).send();
             }else{
-                var apunte = await Apuntes.create({
+                const apunte = new Apuntes({
                     autores:req.body.autor,
                     materia:req.body.materia,
                     titulo:req.body.titulo,
                     dirurl:req.body.link,
                     catedra:req.body.catedra,
                     usuario:req.usuario.idUser,
-                    fechaSubida: (new Date()).toJSON().slice(0,19).replace('T',' ')
+                    fechaSubida: new Date()
                 });
+                await apunte.save();
                 res.status(201).send({msg:'El apunte fue subido'}); 
             }
         } catch (error) {
@@ -37,49 +39,31 @@ class RutasApuntes {
     }
     search = async (req,res) => {
         try {
-            let rta = await Apuntes.findAll({
-                include:[{
-                    model:Usuarios,
-                    required:true,
-                    attributes:['apodo'],                    
-                }],
-                where:{
-                    [Op.and]:[
-                        {autores:{[Op.like]:'%'+req.body.autor+'%'}},
-                        {materia:{[Op.like]:'%'+req.body.materia+'%'}},
-                        {titulo:{[Op.like]:'%'+req.body.titulo+'%'}},
-                        {catedra:{[Op.like]:'%'+req.body.catedra+'%'}}
-                    ]
-                },
-                order:[['fechaSubida','ASC']],
-                offset:(req.params.pagActiva-1)*req.params.cantPorPag,
-                limit:parseInt(req.params.cantPorPag,10)
-            })
-            for await(const elem of rta) { 
-                elem.dirurl = validator.unescape(elem.dirurl);
-                elem.autores = validator.unescape(elem.autores);
-                elem.titulo = validator.unescape(elem.titulo);
-                elem.catedra = validator.unescape(elem.catedra);
-                elem.materia = validator.unescape(elem.materia);
-            }
-            let cantApunt = await Apuntes.count(
-                {where:{
-                    [Op.and]:[
-                        {autores:{[Op.like]:'%'+req.body.autor+'%'}},
-                        {materia:{[Op.like]:'%'+req.body.materia+'%'}},
-                        {titulo:{[Op.like]:'%'+req.body.titulo+'%'}},
-                        {catedra:{[Op.like]:'%'+req.body.catedra+'%'}}
-                    ]
+            await Apuntes.find({autores:new RegExp(req.body.autor), materia:new RegExp(req.body.materia),titulo:new RegExp(req.body.titulo), catedra:new RegExp(req.body.catedra)})
+            .sort({fechaSubida:'asc'})
+            .skip((req.params.pagActiva-1)*req.params.cantPorPag)
+            .limit(parseInt(req.params.cantPorPag,10))
+            .populate('usuario')
+            .exec((err,rta)=>{
+                for await(const elem of rta) { 
+                    elem.dirurl = validator.unescape(elem.dirurl);
+                    elem.autores = validator.unescape(elem.autores);
+                    elem.titulo = validator.unescape(elem.titulo);
+                    elem.catedra = validator.unescape(elem.catedra);
+                    elem.materia = validator.unescape(elem.materia);
                 }
-            });
-            return res.status(201).json({apuntes:rta,cantApuntes:cantApunt});
+                let cantApunt = await Apuntes.find({autores:new RegExp(req.body.autor), materia:new RegExp(req.body.materia),titulo:new RegExp(req.body.titulo), catedra:new RegExp(req.body.catedra)}).count();
+                return res.status(201).json({apuntes:rta,cantApuntes:cantApunt});
+            });            
+            
         } catch (err) {
             res.status(500).send();
         }
     }
     delete = async (req,res) => {
         try {
-            await Apuntes.destroy({where:{idApunte:req.body.idApunte}});
+            //await Apuntes.destroy({where:{idApunte:req.body.idApunte}});
+            await Apuntes.findByIdAndDelete(req.body.idApunte);
             res.status(201).send({ msj: 'el apunte se elimino' });
         } catch (error) {
             res.status(500).send();
