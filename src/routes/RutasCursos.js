@@ -27,7 +27,7 @@ class RutasCursos {
                     materia:req.body.materia,
                     catedra:req.body.catedra,
                     profesores:req.body.profesor,
-                    autor:req.body.idAutor,
+                    idAutor:req.body.idAutor,
                     fechaHora: (new Date()).toJSON().slice(0,19).replace('T',' ')
                 });
                 res.status(201).send({ msg: 'el foro se creó' })
