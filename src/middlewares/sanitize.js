@@ -63,7 +63,7 @@ const sanitizaTema = (req, res, next) => {
     next();
 }
 const sanitizaComentario = (req, res, next) => {
-    req.body.idTema = req.body.idTema.toString();
+    //req.body.idTema = req.body.idTema.toString();
     req.body.comentario = validator.escape(validator.trim(req.body.comentario));
     next();
 }

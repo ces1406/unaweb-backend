@@ -1,5 +1,6 @@
 const {Router} = require('express');
 require('../model/connectdb');
+const cambiarId = require('../common_utilities/cambiarId');
 const { Catedras, ComentariosCatedras} = require('../model/mongodb');
 const {sanitizaForo,sanitizaOpinion} = require('../middlewares/sanitize');
 const {validaForo,validaCreador,validaOpinion} = require('../middlewares/validate');
@@ -15,11 +16,12 @@ class RutasCursos {
     postForo = async (req,res)=>{
         try { 
             if(await Catedras.find({profesores:req.body.profesor,materia:req.body.materia,catedra:req.body.catedra}).count() === 0){
+                console.log('postForo->',req.body)
                 let catedra = await new Catedras({
                     materia:req.body.materia,
                     catedra:req.body.catedra,
                     profesores:req.body.profesor,
-                    autor:req.body.idAutor,
+                    idAutor:req.body.idAutor,
                     fechaHora: new Date()
                 });
                 await catedra.save();
@@ -34,16 +36,25 @@ class RutasCursos {
     }
     searchForo = async (req,res)=>{
         try {
-            let rta = await Catedras.find({profesores:new RegExp(req.body.profesor), materia: new RegExp(req.body.materia), catedra:new RegExp(req.body.catedra)})
+            let rta = await Catedras.find({
+                                        profesores:(req.body.profesor==''||req.body.profesor==null)? /./:new RegExp(req.body.profesor,"i"), 
+                                        materia:(req.body.materia==''||req.body.materia==null)? /./: req.body.materia, 
+                                        catedra:(req.body.catedra==''||req.body.catedra==null)? /./: new RegExp(req.body.catedra,"i")})
                                     .sort({fechaHora:'asc'})
                                     .skip((req.params.pagActiva-1)*req.params.cantPorPag)
                                     .limit(parseInt(req.params.cantPorPag,10));
-            res.status(201).json(rta);
+            let resp =[];
+            for await( const e of rta){
+                resp.push(cambiarId(e,'idCatedra'));
+            } 
+            res.status(201).json(resp);
         } catch (error) {
             res.status(500).send();
         }
     }
     postOpinion = async (req,res)=>{
+        console.log('postenado opinion-req.body: ',req.body);
+        console.log('postenado opinion-req.usuario: ',req.usuario)
         try {
             let opinion = await new ComentariosCatedras({
                 contenido: req.body.contenido,
@@ -59,7 +70,6 @@ class RutasCursos {
     }
     deleteForo = async (req,res)=>{
         try {
-            //await Catedras.destroy({where:{idCatedra:req.body.idCatedra}});
             await Catedras.findByIdAndDelete(req.body.idCatedra)
             res.status(201).send({ msj: 'el foro se elimino' });
         } catch (error) {
@@ -75,13 +85,26 @@ class RutasCursos {
                 .populate('idCatedra')
                 .populate('idUsuario')
                 .exec(async(err,rta)=>{
-                    for await (let com of rta) {     
-                        com.Usuario.redSocial1 = (com.Usuario.redSocial1 == undefined) ? null : validator.unescape(com.Usuario.redSocial1);
-                        com.Usuario.redSocial2 = (com.Usuario.redSocial2 == undefined) ? null : validator.unescape(com.Usuario.redSocial2);
-                        com.Usuario.redSocial3 = (com.Usuario.redSocial3 == undefined) ? null : validator.unescape(com.Usuario.redSocial3);  
-                        com.contenido = validator.unescape(com.contenido);
-                    }
-                    return res.status(200).json(rta);
+                    let coments =[];
+                    console.log('rta: ',rta)
+                    //console.log('rta.length: '+ rta.length)
+                    if(rta.length !== 0){
+                        if(rta !=null){
+                            for await (let com of rta) {   
+                                let comAux = cambiarId(com,'idComentario')
+                                comAux.Catedra = comAux.idCatedra;
+                                delete comAux.idCatedra;
+                                comAux.Usuario = comAux.idUsuario;  
+                                delete comAux.idUsuario;
+                                comAux.Usuario.redSocial1 = (comAux.Usuario.redSocial1 == undefined) ? null : validator.unescape(comAux.Usuario.redSocial1);
+                                comAux.Usuario.redSocial2 = (comAux.Usuario.redSocial2 == undefined) ? null : validator.unescape(comAux.Usuario.redSocial2);
+                                comAux.Usuario.redSocial3 = (comAux.Usuario.redSocial3 == undefined) ? null : validator.unescape(comAux.Usuario.redSocial3);  
+                                comAux.contenido = validator.unescape(comAux.contenido); 
+                                coments.push(comAux)
+                            }
+                        }
+                    }                    
+                    return res.status(200).json(coments);
                 });
         } catch (error) {
             res.status(500).send();
@@ -89,11 +112,10 @@ class RutasCursos {
     }
     getCatedra = async (req,res)=>{
         try {
-            let rta = await Catedras.findOne({idCatedra: req.params.idCatedra});
-            //let rta = await Catedras.findOne({where:{idCatedra:req.params.idCatedra}});
-            //rta.dataValues.cantOpiniones = await ComentariosCatedra.count({where:{idCatedra:req.params.idCatedra}});
-            rta.cantOpiniones = await ComentariosCateras.finc({idCatedra:req.params.idCatedra}).count();
-            return res.status(200).json(rta)
+            let rta = await Catedras.findById(req.params.idCatedra);
+            let aux = cambiarId(rta,'idCatedra')
+            aux.cantOpiniones = await ComentariosCatedras.find({idCatedra:req.params.idCatedra}).count();
+            return res.status(200).json(aux)
         } catch (error) {
             res.status(500).send();
         }

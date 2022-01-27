@@ -6,6 +6,7 @@ const {pasaporteJwt} = require ('./middlewares/passport');
 const RutasSecciones = require('./routes/RutasSecciones');
 const RutasUsuarios = require('./routes/RutasUsuarios');
 const RutasTemas = require('./routes/RutasTemas');
+const morgan = require('morgan')
 
 class Applicacion {
     constructor(){
@@ -18,6 +19,7 @@ class Applicacion {
         this.app.set('port',process.env.PORT||5000);
     }
     setMiddlewares = ()=>{
+        this.app.use(morgan('dev'));
         this.app.use(express.urlencoded({extended:false}));
         this.app.use(express.json());
         this.app.use(this.handleCors);

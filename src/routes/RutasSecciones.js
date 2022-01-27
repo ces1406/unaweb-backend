@@ -2,55 +2,54 @@ const {Router} = require('express');
 require('../model/connectdb');
 const { Catedras, Secciones, Apuntes, Temas, Comentarios} = require('../model/mongodb');
 const validator = require('validator');
+const cambiarId = require('../common_utilities/cambiarId')
 
 class RutasSecciones {
     constructor(){
         this.router = Router();
-        start();
         this.routes();
     }
     getSections = async (req,res)=>{
         try {
-            //const secciones = await Secciones.findAll();
-            const secciones = await Secciones.findOne();
-            for await(let seccion of secciones) {
-                if(seccion.idSeccion===5){
-                    seccion.cantTemas = await Catedras.find().count();
-                }else if(seccion.idSeccion===9){
-                    seccion.cantTemas = await Apuntes.find().count();
-                }else{
-                    seccion.cantTemas = await Temas.find({idSeccion:seccion.idSeccion}).count();  
-                }                                              
+            let secciones = await Secciones.find()
+            let seccs = [];
+            for await (let e of secciones){
+                seccs.push(cambiarId(e,'idSeccion'))
             }
-            res.status(200).json({secciones})
+            for await(let e of seccs) {
+                if(e.nombreSeccion==='Opiniones de cátedras y profesores'){
+                    e.cantTemas = await Catedras.find().count();
+                }else if(e.nombreSeccion==='Apuntes'){
+                    e.cantTemas = await Apuntes.find().count();
+                }else{
+                    e.cantTemas = await Temas.find({idSeccion:e.idSeccion}).count();  
+                }  
+            } 
+            res.status(200).json({secciones:seccs})
         } catch (err){
             res.status(200).send({msg: err.msg})
         }        
     }
-    getSection = async (req,res)=>{
+    getSection = async (req,res)=>{        
         try {
-            let temas = await Temas.findAll({idSeccion:req.params.idSec})
+            let rta =[];
+            let temas = await Temas.find({idSeccion:req.params.idSec})
                 .sort({fechaCreacion: -1})
                 .skip((req.params.pagActiva-1)*req.params.cantTems)
                 .limit(parseInt(req.params.cantTems,10));
-            /* let temas = await Temas.findAll({
-                where:{idSeccion:req.params.idSec},
-                order:[['fechaCreacion','DESC']],
-                offset:(req.params.pagActiva-1)*req.params.cantTems,
-                limit:parseInt(req.params.cantTems,10)
-            }); */
             for await (let tema of temas) {      
-                tema.comentarioInicial = validator.unescape(tema.comentarioInicial);
-                tema.cantComentarios = await Comentarios.find({idTema:tema.idTema}).count();//await Comentarios.count({where:{idTema:tema.idTema}});
+                let item =cambiarId(tema,'idTema');
+                item.comentarioInicial = validator.unescape(tema.comentarioInicial);
+                item.cantComentarios = await Comentarios.find({idTema:tema.idTema}).count();//await Comentarios.count({where:{idTema:tema.idTema}});
+                rta.push(item)
             }
-            res.status(200).json({temas})
+            res.status(200).json({temas:rta})
         } catch (error) {
             res.status(500).send();            
         }
     }
     checkSection = async (req,res)=>{
         try {
-            //let busq = await Secciones.count({where:{[Op.and]:[{idSeccion:req.params.idSec},{nombreSeccion:req.params.nombSec}]}});
             let busq = await Secciones.find({idSeccion:req.params.idSec, nombreSeccion:req.params.nombSec}).count();
             res.status(200).json({rta:(busq!==0)?true:false})
         } catch (error) {

@@ -61,9 +61,10 @@ const validaForo = (req, res, next) => {
     }
 }
 const validaOpinion = (req, res, next) => {
-    if (!validator.isInt(req.body.idCatedra)) {
+    /* if (!validator.isInt(req.body.idCatedra)) {
         res.status(400).send()
-    } else if (req.body.contenido.length === 0 || req.body.contenido.length > 20000) {
+    } else */ 
+    if (req.body.contenido.length === 0 || req.body.contenido.length > 20000) {
         res.status(201).send({ msj: 'completa correctamente el comentario' });
     } else {
         next();
@@ -81,9 +82,10 @@ const validaTema = (req, res, next) => {
     }
 }
 const validaComentario = (req, res, next) => {
-    if (!validator.isInt(req.body.idTema)) {
+    /*if (!validator.isInt(req.body.idTema)) {
         res.status(201).send({ msj: 'Error-idTema' });
-    } else if (req.body.comentario.length === 0 || req.body.comentario.length > 20000) {
+    } else*/ 
+    if (req.body.comentario.length === 0 || req.body.comentario.length > 20000) {
         res.status(201).send({ msj: 'completa correctamente el comentario' });
     } else {
         next();

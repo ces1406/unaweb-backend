@@ -1,6 +1,7 @@
 const {Router} = require('express');
 const path = require('path');
 require('../model/connectdb');
+const cambiarId = require('../common_utilities/cambiarId');
 const { Usuarios} = require('../model/mongodb');
 const cargarImg = require('../middlewares/multer');
 const mailer = require ('../common_utilities/mailer');
@@ -17,7 +18,6 @@ const jwt = require ('jsonwebtoken');
 class RutasUsuarios {
     constructor(){
         this.router = Router();
-        start();
         this.routes();
     }    
     mailExist = (unMail) => {
@@ -89,14 +89,13 @@ class RutasUsuarios {
                     redSocial2:req.body.blog,
                     redSocial3:req.body.youtube 
                 });
-                await user.save();
-
-                return {user,token};
+                let usuario = await user.save();
+                return {usuario,token};
             })
             .then(rta => {                
                 let asunto = 'Registro en el sitio UNAweb';
                 let contenido = 'Hola '+req.body.apodo+', haz click en el siguiente enlace para finalizar tu registro en el sitio:\n';
-                contenido += process.env.URL_BACKEND + '/usuarios/confirmregister/' + rta.user.idUsuario+ '/' + rta.token;              
+                contenido += process.env.URL_BACKEND + '/usuarios/confirmregister/' + rta.usuario._id+ '/' + rta.token;              
                 mailer(req.body.mail,asunto,contenido);
             })
             .then(rta => {
@@ -133,10 +132,9 @@ class RutasUsuarios {
         }        
     }
     habilitaUsuario = async (req,res)=>{
-        try{      
-            let users = await Usuarios.find({idUsuario:req.params.idUsuario});        
-            if (req.params.token === users[0].token){
-                //await Usuarios.update({estadoCuenta:'HABILIT'},{where:{idUsuario:req.params.idUsuario}});
+        try{     
+            let user = await Usuarios.findById(req.params.idUsuario);  
+            if (req.params.token === user.token){
                 await Usuarios.findByIdAndUpdate(req.params.idUsuario,{estadoCuenta:'HABILIT'});
                 res.sendFile('index.html', {
                     root: path.join(__dirname, 'confirm'),
@@ -156,21 +154,20 @@ class RutasUsuarios {
     login = async (req,res)=>{
         try{
             if( await this.nicknameExist(req.body.apodo)) throw ({code:400});
-            //let user = await Usuarios.findAll({where:{apodo:req.body.apodo}});
-            let user = await Usuarios.find({apodo:req.body.apodo})
-            bcrypt.compare(req.body.password,user[0].contrasenia,(err,rta)=>{
+            let user = await Usuarios.findOne({apodo:req.body.apodo})
+            bcrypt.compare(req.body.password,user.contrasenia,(err,rta)=>{
                 if(rta){
                     if(err) throw err;
-                    if(user[0].estadoCuenta === 'HABILIT'){
+                    if(user.estadoCuenta === 'HABILIT'){
                         return res.status(201).json({usuario:{
-                            apodo:user[0].apodo, 
-                            idUsuario:user[0].idUsuario,
-                            mail:validator.unescape(user[0].mail),
-                            redSocial1: (user[0].redSocial1 === null) ? null : validator.unescape(user[0].redSocial1), 
-                            redSocial2: (user[0].redSocial2 === null) ? null : validator.unescape(user[0].redSocial2),
-                            redSocial3: (user[0].redSocial3 === null) ? null : validator.unescape(user[0].redSocial3), 
-                            dirImg: user[0].dirImg, rol: user[0].rol
-                        },token: this.crearToken(user[0].idUsuario, user[0].apodo,user[0].rol), msj: 'bienvenido a unaWeb'})
+                            apodo:user.apodo, 
+                            idUsuario:user._id,
+                            mail:validator.unescape(user.mail),
+                            redSocial1: (user.redSocial1 == null) ? null : validator.unescape(user.redSocial1), 
+                            redSocial2: (user.redSocial2 == null) ? null : validator.unescape(user.redSocial2),
+                            redSocial3: (user.redSocial3 == null) ? null : validator.unescape(user.redSocial3), 
+                            dirImg: user.dirImg, rol: user.rol
+                        },token: this.crearToken(user._id, user.apodo,user.rol), msj: 'bienvenido a unaWeb'})
                     }else{
                         res.statusMessage = 'todavía no estas habilitado, chequea tu casilla de mail para terminar de registrarte'
                         return res.status(401).send()
@@ -186,12 +183,16 @@ class RutasUsuarios {
         }
     }
     recuperarpassw = async (req,res)=>{
-        try{
+        try{            
+            console.log('req.body',req.body);
             if( await this.nicknameExist(req.body.apodo)) throw ({code:400});
             if( await Usuarios.find({mail:req.body.mail}).count() === 0) {throw ({code:400});}
-            let user1 = await Usuarios.findAll({apodo:req.body.apodo});
-            let user2 = await Usuarios.findAll({mail:req.body.mail});
-            if(user1[0].idUsuario !== user2[0].idUsuario){
+            let user1 = await Usuarios.find({apodo:req.body.apodo});
+            let user2 = await Usuarios.find({mail:req.body.mail});
+            console.log('user1[0].idUsuario',user1[0]._id);
+            console.log('user2[0].idUsuario',user2[0]._id);
+            if(JSON.stringify(user1[0]._id) !== JSON.stringify(user2[0]._id)){
+                console.log('son distintas')
                 res.statusMessage = 'Error en el usuario o el mail indicado';
                 return res.status(401).send()
             }else{
@@ -200,10 +201,12 @@ class RutasUsuarios {
                 let contenido = 'Hola ' + req.body.apodo + ', tu nueva contraseña es: ' + pass.toString('hex') + ' .Si nunca solicitaste una nueva contraseña'
                 contenido += ' entonces otra persona esta en conocimiento de tu apodo y tu dirección de mail registrados en nuestro sitio.';
                 mailer(req.body.mail,asunto,contenido);
-                bcrypt.hash(pass.toString('hex'), 10, (err, hash) => { 
+                bcrypt.hash(pass.toString('hex'), 10, async(err, hash) => { 
                     if (err) throw ({ code: 500, msj: 'Tuvimos un inconviente, intenta mas tarde' });
                     //Usuarios.update({contrasenia:hash},{where:{idUsuario:user1[0].idUsuario}});
-                    await Usuarios.findByIdAndUpdate(user1[0].idUsuario, {contrasenia:hash});
+                    console.log('hash: ',hash)
+                    let us=await Usuarios.findByIdAndUpdate(user1[0]._id, {contrasenia:hash});
+                    console.log('user',us)
                 });
                 res.status(201).send({ msj: 'Revisa tu correo para conocer tu nueva contraseña' })
             }            
@@ -227,13 +230,13 @@ class RutasUsuarios {
                             }
                             fs.rename(path.join(__dirname,  '../../usersimgs/' + req.file.filename),
                                 path.join(__dirname, '../../usersimgs/user-' + req.usuario.apodo + path.extname(req.file.originalname).toLowerCase()),
-                                (err1) => {
+                                async (err1) => {
                                     if (err1){
                                         res.statusMessage = 'Tuvimos un inconviente, intenta mas tarde' 
                                         res.status(500).send();
                                     }else{
-                                        //Usuarios.update({dirImg:'user-'+req.usuario.apodo+path.extname(req.file.originalname).toLowerCase()},{where:{idUsuario:req.usuario.idUser}});
-                                        Usuarios.findByIdAndUpdate(req.usuario.idUser,{dirImg:'user-'+req.usuario.apodo+path.extname(req.file.originalname).toLowerCase()});
+                                        let nuevaImg = 'user-'+req.usuario.apodo+path.extname(req.file.originalname).toLowerCase();
+                                        await Usuarios.findByIdAndUpdate(req.usuario.idUser,{dirImg:nuevaImg});
                                         res.status(201).send({ msj: 'La imagen fue reemplazada con exito' })
                                     }
                                 });
@@ -243,18 +246,16 @@ class RutasUsuarios {
                     if (validator.isEmpty(validator.escape(validator.trim(req.body.pass0))) ||
                         validator.isEmpty(validator.escape(validator.trim(req.body.pass1))) ||
                         validator.isEmpty(validator.escape(validator.trim(req.body.pass2)))) {
-                        return res0.status(401).send()
+                        return res.status(401).send()
                     } else {
-                        let usuario = await Usuarios.findAll({idUsuario:req.usuario.idUser});
-                        //let usuario = await Usuarios.findAll({where:{idUsuario:req.usuario.idUser}});
-                        if (usuario[0] === undefined) return res0.status(401).send();
-                        if (usuario[0].contrasenia) {
-                            bcrypt.compare(req.body.pass0, usuario[0].contrasenia, (err, rta) => {
+                        let usuario = await Usuarios.findById(req.usuario.idUser);
+                        if (usuario === undefined) return res.status(401).send();
+                        if (usuario.contrasenia) {
+                            bcrypt.compare(req.body.pass0, usuario.contrasenia, (err, rta) => {
                                 if (rta) {
                                     if (err) return res0.status(401).send();
-                                    if (usuario[0].estadoCuenta === 'HABILIT') {
+                                    if (usuario.estadoCuenta === 'HABILIT') {
                                         bcrypt.hash(req.body.pass1, 10)
-                                            //.then(passHashed => Usuarios.update({contrasenia:passHashed},{where:{idUsuario:req.usuario.idUser}}) )
                                             .then(passHashed => Usuarios.findByIdAndUpdate(req.usuario.idUser,{contrasenia:passHashed}) )
                                             .then(rta => { res.status(201).send({ msj: 'tu contraseña ha sido modificada' }) })
                                             .catch((err) => {
@@ -372,13 +373,16 @@ class RutasUsuarios {
     }
     getAvatar = async (req,res)=>{
         try{
+            console.log('req.params: ',req.params)
             let user = await Usuarios.findOne({apodo:req.params.dir.slice(5, req.params.dir.lastIndexOf("."))});
+            console.log('user.dirImg: ',user.dirImg)
             var img = fs.createReadStream(path.join(__dirname, '../../usersimgs', user.dirImg));
             img.on('open', () => {
                 res.set('Content-type', 'image/' + path.extname(req.params.dir).slice(1))
                 img.pipe(res)
             })
             img.on('error', (err) => {
+                console.log('error de avatar: ',err)
                 res.set('Content-Type', 'text/plain');
                 res.status(404).send('not found')
             })

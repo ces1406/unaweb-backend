@@ -6,6 +6,7 @@ const {validaApunte, validaEnlace} = require('../middlewares/validate');
 const {autenticacionjwt} = require('../middlewares/passport');
 const isAdmin = require('../middlewares/isAdmin');
 const validator = require('validator');
+const cambiarId = require('../common_utilities/cambiarId')
 
 class RutasApuntes {
     constructor(){
@@ -14,7 +15,10 @@ class RutasApuntes {
     }
     uploadApunte = async (req,res)=>{
         try {
+            console.log('link del apunte: ',req.body.link);
+            console.log('Apuntes.count->'+ Apuntes.count({dirurl:req.body.link}))
             if(await Apuntes.count({dirurl:req.body.link})!==0){
+                console.log('existe el apuntes')
                 res.statusMessage='Ya existe un enlace a ese apunte';
                 res.status(400).send();
             }else{
@@ -36,21 +40,28 @@ class RutasApuntes {
     }
     search = async (req,res) => {
         try {
-            await Apuntes.find({autores:new RegExp(req.body.autor), materia:new RegExp(req.body.materia),titulo:new RegExp(req.body.titulo), catedra:new RegExp(req.body.catedra)})
+            await Apuntes.find({autores:new RegExp(req.body.autor,"i"), materia:new RegExp(req.body.materia,"i"),titulo:new RegExp(req.body.titulo,"i"), catedra:new RegExp(req.body.catedra,"i")})
             .sort({fechaSubida:'asc'})
             .skip((req.params.pagActiva-1)*req.params.cantPorPag)
             .limit(parseInt(req.params.cantPorPag,10))
             .populate('usuario')
-            .exec((err,rta)=>{
+            .exec(async (err,rta)=>{
+                let rtaAux =[];
+                console.log('apuntes')
                 for await(const elem of rta) { 
-                    elem.dirurl = validator.unescape(elem.dirurl);
-                    elem.autores = validator.unescape(elem.autores);
-                    elem.titulo = validator.unescape(elem.titulo);
-                    elem.catedra = validator.unescape(elem.catedra);
-                    elem.materia = validator.unescape(elem.materia);
+                    let apte = cambiarId(elem,'idApunte');
+                    apte.dirurl = validator.unescape(apte.dirurl);
+                    apte.autores = validator.unescape(apte.autores);
+                    apte.titulo = validator.unescape(apte.titulo);
+                    apte.catedra = validator.unescape(apte.catedra);
+                    apte.materia = validator.unescape(apte.materia);
+                    apte.Usuario ={apodo: elem.usuario.apodo};
+                    apte.usuario = elem.usuario._id;
+                    //delete apte.usuario;
+                    rtaAux.push(apte);
                 }
-                let cantApunt = await Apuntes.find({autores:new RegExp(req.body.autor), materia:new RegExp(req.body.materia),titulo:new RegExp(req.body.titulo), catedra:new RegExp(req.body.catedra)}).count();
-                return res.status(201).json({apuntes:rta,cantApuntes:cantApunt});
+                let cantApunt = await Apuntes.find({autores:new RegExp(req.body.autor,"i"), materia:new RegExp(req.body.materia,"i"),titulo:new RegExp(req.body.titulo,"i"), catedra:new RegExp(req.body.catedra,"i")}).count();
+                return res.status(201).json({apuntes:rtaAux,cantApuntes:cantApunt});
             });            
             
         } catch (err) {
@@ -59,7 +70,6 @@ class RutasApuntes {
     }
     delete = async (req,res) => {
         try {
-            //await Apuntes.destroy({where:{idApunte:req.body.idApunte}});
             await Apuntes.findByIdAndDelete(req.body.idApunte);
             res.status(201).send({ msj: 'el apunte se elimino' });
         } catch (error) {

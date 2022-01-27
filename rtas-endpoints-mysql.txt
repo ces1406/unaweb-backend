@@ -1,0 +1,385 @@
+GET->/secciones:
+    Array(9)
+    0: {idSeccion: 1, nombreSeccion: 'Agenda', descripcion: 'calendario y fechas de actividades y eventos', img: '1.png', cantTemas: 2}
+    1: {idSeccion: 2, nombreSeccion: 'Temas generales', descripcion: 'temas que no están en otras secciones', img: '2.png', cantTemas: 0}
+    2: {idSeccion: 3, nombreSeccion: 'Compra, venta e intercambio de materiales', descripcion: 'compra, venta y canje de distintos materiales del rubro artístico', img: '4.png', cantTemas: 0}
+    3: {idSeccion: 4, nombreSeccion: 'Exposiciones', descripcion: 'avisos de actividades y exposiciones', img: '5.png', cantTemas: 0}
+    4: {idSeccion: 5, nombreSeccion: 'Opiniones de cátedras y profesores', descripcion: 'busca y deja opiniones sobre distintas materias, cátedras y profesores', img: '6.png', cantTemas: 0}
+    5: {idSeccion: 6, nombreSeccion: 'Política interna', descripcion: 'temas sobre la política interna de la UNA', img: '7.png', cantTemas: 0}
+    6: {idSeccion: 7, nombreSeccion: 'Info académica y trámites', descripcion: 'cuestiones académicas, dudas sobre trámites, inscripciones, certificados, etc.', img: '8.png', cantTemas: 0}
+    7: {idSeccion: 8, nombreSeccion: 'Links y sitios relacionados', descripcion: 'links a distintas paginas relacionadas con la UNA', img: '9.png', cantTemas: 0}
+    8: {idSeccion: 9, nombreSeccion: 'Apuntes', descripcion: 'aportes y búsquedas de apuntes', img: '10.png', cantTemas: 0}
+
+POST->/usuarios/login:
+{
+    "usuario": {
+        "apodo": "ADMIN",
+        "idUsuario": 1,
+        "mail": "ces1406@gmail.com",
+        "redSocial1": null,
+        "redSocial2": null,
+        "redSocial3": null,
+        "dirImg": null,
+        "rol": "ADMI"
+    },
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwibmljayI6IkFETUlOIiwicm9sIjoiQURNSSIsImlhdCI6MTY0MzEyMTA1MiwiZXhwIjoxNjQzMTIxNzcyfQ.9EW98sgdVNYFWzW3UrGrB-OJyTXQpvQZu3P773hoUgM",
+    "msj": "bienvenido a unaWeb"
+}
+
+POST->/temas/cursos/search/1/12:
+[
+    {
+        "idCatedra": 1,
+        "catedra": "FERNANDEZ",
+        "materia": "Ciencias Aplicadas a las Artes del Fuego I (387)",
+        "profesores": "lopez garcia suarez",
+        "fechaHora": "2022-01-25T17:34:01.000Z",
+        "idAutor": null,
+        "dia": 25,
+        "mes": 0,
+        "anio": 2022,
+        "hora": 14,
+        "min": 34,
+        "milisecs": 1643132041000,
+        "erasable": false
+    }
+]
+
+GET->/temas/cursos/1 :
+{
+    "idCatedra": 1,
+    "catedra": "FERNANDEZ",
+    "materia": "Ciencias Aplicadas a las Artes del Fuego I (387)",
+    "profesores": "lopez garcia suarez",
+    "fechaHora": "2022-01-25T17:34:01.000Z",
+    "idAutor": null,
+    "cantOpiniones": 0
+}
+
+GET->/temas/cursos/opiniones/1/1/12:
+[
+    {
+        "idComentario": 1,
+        "contenido": "<p>YO OPINO QUE LA CATEDRA ES MUY BUENA</p>",
+        "fechaHora": "2022-01-25T17:38:41.000Z",
+        "idUsuario": 1,
+        "idCatedra": 1,
+        "Catedra": {
+            "idCatedra": 1,
+            "catedra": "FERNANDEZ",
+            "materia": "Ciencias Aplicadas a las Artes del Fuego I (387)",
+            "profesores": "lopez garcia suarez",
+            "fechaHora": "2022-01-25T17:34:01.000Z",
+            "idAutor": null
+        },
+        "Usuario": {
+            "apodo": "ADMIN",
+            "dirImg": null,
+            "redSocial1": null,
+            "redSocial2": null,
+            "redSocial3": null
+        },
+        "dia": 25,
+        "mes": 0,
+        "anio": 2022,
+        "hora": 14,
+        "min": 38,
+        "milisecs": 1643132321000
+    },
+    {
+        "idComentario": 2,
+        "contenido": "<p>YO TAMBIEN</p>",
+        "fechaHora": "2022-01-25T17:41:13.000Z",
+        "idUsuario": 1,
+        "idCatedra": 1,
+        "Catedra": {
+            "idCatedra": 1,
+            "catedra": "FERNANDEZ",
+            "materia": "Ciencias Aplicadas a las Artes del Fuego I (387)",
+            "profesores": "lopez garcia suarez",
+            "fechaHora": "2022-01-25T17:34:01.000Z",
+            "idAutor": null
+        },
+        "Usuario": {
+            "apodo": "ADMIN",
+            "dirImg": null,
+            "redSocial1": null,
+            "redSocial2": null,
+            "redSocial3": null
+        },
+        "dia": 25,
+        "mes": 0,
+        "anio": 2022,
+        "hora": 14,
+        "min": 41,
+        "milisecs": 1643132473000
+    }
+]
+
+GET->/temas/ultimoscomentarios:
+[
+    {
+        "idComentario": 2,
+        "contenido": "<p>YO TAMBIEN</p>",
+        "fechaHora": "2022-01-25T17:41:13.000Z",
+        "idUsuario": 1,
+        "idCatedra": 1,
+        "Usuario": {
+            "apodo": "ADMIN",
+            "dirImg": null
+        },
+        "mili": 1643132473000,
+        "idSeccion": 5,
+        "origen": {
+            "idCatedra": 1,
+            "catedra": "FERNANDEZ",
+            "materia": "Ciencias Aplicadas a las Artes del Fuego I (387)",
+            "profesores": "lopez garcia suarez",
+            "fechaHora": "2022-01-25T17:34:01.000Z",
+            "idAutor": null
+        },
+        "dia": 25,
+        "mes": 0,
+        "anio": 2022,
+        "milisecs": 1643132473000,
+        "hora": 14,
+        "min": 41
+    },
+    {
+        "idComentario": 1,
+        "contenido": "<p>YO OPINO QUE LA CATEDRA ES MUY BUENA</p>",
+        "fechaHora": "2022-01-25T17:38:41.000Z",
+        "idUsuario": 1,
+        "idCatedra": 1,
+        "Usuario": {
+            "apodo": "ADMIN",
+            "dirImg": null
+        },
+        "mili": 1643132321000,
+        "idSeccion": 5,
+        "origen": {
+            "idCatedra": 1,
+            "catedra": "FERNANDEZ",
+            "materia": "Ciencias Aplicadas a las Artes del Fuego I (387)",
+            "profesores": "lopez garcia suarez",
+            "fechaHora": "2022-01-25T17:34:01.000Z",
+            "idAutor": null
+        },
+        "dia": 25,
+        "mes": 0,
+        "anio": 2022,
+        "milisecs": 1643132321000,
+        "hora": 14,
+        "min": 38
+    },
+    {
+        "idComentario": 2,
+        "contenido": "<p>Claro que si se&ntilde;or</p>",
+        "fechaHora": "2022-01-06T14:42:01.000Z",
+        "idUsuario": 4,
+        "idTema": 2,
+        "Usuario": {
+            "apodo": "ces",
+            "dirImg": "user-ces.png"
+        },
+        "mili": 1641480121000,
+        "origen": {
+            "idTema": 2,
+            "titulo": "Titulo del Segundo tema",
+            "palabraClave1": "arte",
+            "palabraClave2": "la",
+            "palabraClave3": "ipsum",
+            "fechaCreacion": "2022-01-06T14:40:23.000Z",
+            "comentarioInicial": "&lt;p&gt;Ahi va otro lorem:&lt;&#x2F;p&gt;&lt;p&gt;he standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested. Sections 1.10.32 and 1.10.33 from &amp;quot;de Finibus Bonorum et Malorum&amp;quot; by Cicero are also reproduced in their exact original form, accompanied by English versions from the 1914 translation by H. Rackham.&lt;&#x2F;p&gt;",
+            "idUsuario": 4,
+            "idSeccion": 1,
+            "Seccion": {
+                "idSeccion": 1,
+                "nombreSeccion": "Agenda",
+                "descripcion": "calendario y fechas de actividades y eventos",
+                "img": "1.png"
+            }
+        },
+        "dia": 6,
+        "mes": 0,
+        "anio": 2022,
+        "milisecs": 1641480121000,
+        "hora": 11,
+        "min": 42
+    },
+    {
+        "idComentario": 1,
+        "contenido": "<p>es verdaaaad</p>",
+        "fechaHora": "2022-01-05T17:07:42.000Z",
+        "idUsuario": 4,
+        "idTema": 1,
+        "Usuario": {
+            "apodo": "ces",
+            "dirImg": "user-ces.png"
+        },
+        "mili": 1641402462000,
+        "origen": {
+            "idTema": 1,
+            "titulo": "Este es el titulo del tema",
+            "palabraClave1": "lorem",
+            "palabraClave2": "arte",
+            "palabraClave3": "ipsum",
+            "fechaCreacion": "2022-01-05T17:07:25.000Z",
+            "comentarioInicial": "&lt;p&gt;&lt;strong&gt;Lorem Ipsum&lt;&#x2F;strong&gt;&amp;nbsp;is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry&amp;#39;s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.&lt;&#x2F;p&gt;",
+            "idUsuario": 4,
+            "idSeccion": 1,
+            "Seccion": {
+                "idSeccion": 1,
+                "nombreSeccion": "Agenda",
+                "descripcion": "calendario y fechas de actividades y eventos",
+                "img": "1.png"
+            }
+        },
+        "dia": 5,
+        "mes": 0,
+        "anio": 2022,
+        "milisecs": 1641402462000,
+        "hora": 14,
+        "min": 7
+    }
+]
+
+GET->/apuntes/search/1/12
+{
+    "apuntes": [
+        {
+            "idApunte": 1,
+            "autores": "MONTALVAN",
+            "titulo": "Titulo de un APUNTE SUBIDO",
+            "materia": "Ciencias Aplicadas a las Artes del Fuego I (387)",
+            "catedra": "FERNANDEZ",
+            "fechaSubida": "2022-01-25T22:10:04.000Z",
+            "dirurl": "https://www.pagina12.com.ar",
+            "usuario": 1,
+            "Usuario": {
+                "apodo": "ADMIN"
+            },
+            "dia": 25,
+            "mes": 0,
+            "anio": 2022,
+            "hora": 19,
+            "min": 10,
+            "milisecs": 1643148604000,
+            "erasable": false
+        }
+    ],
+    "cantApuntes": 1
+}
+
+GET->/secciones/1/1/12
+{
+    "temas": [
+        {
+            "idTema": 2,
+            "titulo": "Titulo del Segundo tema",
+            "palabraClave1": "arte",
+            "palabraClave2": "la",
+            "palabraClave3": "ipsum",
+            "fechaCreacion": "2022-01-06T14:40:23.000Z",
+            "comentarioInicial": "<p>Ahi va otro lorem:</p><p>he standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested. Sections 1.10.32 and 1.10.33 from &quot;de Finibus Bonorum et Malorum&quot; by Cicero are also reproduced in their exact original form, accompanied by English versions from the 1914 translation by H. Rackham.</p>",
+            "idUsuario": 4,
+            "idSeccion": 1,
+            "cantComentarios": 1,
+            "dia": 6,
+            "mes": 0,
+            "anio": 2022,
+            "milisecs": 1641480023000,
+            "erasable": false
+        },
+        {
+            "idTema": 1,
+            "titulo": "Este es el titulo del tema",
+            "palabraClave1": "lorem",
+            "palabraClave2": "arte",
+            "palabraClave3": "ipsum",
+            "fechaCreacion": "2022-01-05T17:07:25.000Z",
+            "comentarioInicial": "<p><strong>Lorem Ipsum</strong>&nbsp;is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry&#39;s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.</p>",
+            "idUsuario": 4,
+            "idSeccion": 1,
+            "cantComentarios": 1,
+            "dia": 5,
+            "mes": 0,
+            "anio": 2022,
+            "milisecs": 1641402445000,
+            "erasable": false
+        }
+    ]
+}
+
+GET->/temas/2
+{
+    "rta": {
+        "idTema": 2,
+        "titulo": "Titulo del Segundo tema",
+        "palabraClave1": "arte",
+        "palabraClave2": "la",
+        "palabraClave3": "ipsum",
+        "fechaCreacion": "2022-01-06T14:40:23.000Z",
+        "comentarioInicial": "<p>Ahi va otro lorem:</p><p>he standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested. Sections 1.10.32 and 1.10.33 from &quot;de Finibus Bonorum et Malorum&quot; by Cicero are also reproduced in their exact original form, accompanied by English versions from the 1914 translation by H. Rackham.</p>",
+        "idUsuario": 4,
+        "idSeccion": 1,
+        "Usuario": {
+            "apodo": "ces",
+            "dirImg": "user-ces.png",
+            "redSocial1": "http:&#x2F;&#x2F;",
+            "redSocial2": "http:&#x2F;&#x2F;",
+            "redSocial3": "http:&#x2F;&#x2F;ces147@yahoo.com.ar"
+        },
+        "cantComents": 1
+    }
+}
+
+GET->/temas/comentarios/1/1/12
+[
+    {
+        "idComentario": 1,
+        "contenido": "<p>es verdaaaad</p>",
+        "fechaHora": "2022-01-05T17:07:42.000Z",
+        "idUsuario": 4,
+        "idTema": 1,
+        "Usuario": {
+            "apodo": "ces",
+            "dirImg": "user-ces.png",
+            "redSocial1": "http:&#x2F;&#x2F;",
+            "redSocial2": "http:&#x2F;&#x2F;",
+            "redSocial3": "http:&#x2F;&#x2F;ces147@yahoo.com.ar"
+        },
+        "dia": 5,
+        "mes": 0,
+        "anio": 2022,
+        "hora": 14,
+        "min": 7,
+        "milisecs": 1641402462000,
+        "erasable": false,
+        "src": "blob:http://localhost:8080/5b2139ca-072c-4be0-8444-9c0f38788743"
+    },
+    {
+        "idComentario": 3,
+        "contenido": "<p>BABABABA</p>",
+        "fechaHora": "2022-01-26T03:24:23.000Z",
+        "idUsuario": 1,
+        "idTema": 1,
+        "Usuario": {
+            "apodo": "ADMIN",
+            "dirImg": null,
+            "redSocial1": null,
+            "redSocial2": null,
+            "redSocial3": null
+        },
+        "dia": 26,
+        "mes": 0,
+        "anio": 2022,
+        "hora": 0,
+        "min": 24,
+        "milisecs": 1643167463000,
+        "erasable": false
+    }
+]
+
+GET->/usuarios/avatar/usuarioX.png
+{size:73971, type:'image/png'}

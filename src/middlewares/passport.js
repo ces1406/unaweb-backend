@@ -11,9 +11,12 @@ opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
 opts.secretOrKey = process.env.JWT_SECRET;
 
 const verifyCallback = async (jwtPayload,done)=>{ 
-    //start();
-    //let user = await Usuarios.findOne({where:{idUsuario:jwtPayload.id}});
-    let user = await Usuarios.findOne({_id:jwtPayload.id})
+    let user = await Usuarios.findById(jwtPayload.id)
+    /*  Hacer algo con el payload (chequear permisos, roles, etc.) */
+    /* 
+        El payload tendrá los  campos que definí en la creación del token en:
+        jwt.sign({id:iduser,nick:apodo,rol:rol}, process.env.JWT_SECRET, {expiresIn: process.env.JWT_LIFETIME});
+    */
     done(null,true,{usuario:{apodo:jwtPayload.nick,idUser:jwtPayload.id,rol:jwtPayload.rol}});
 }
 const pasaporteJwt = new StrategyJwt(opts,verifyCallback);
