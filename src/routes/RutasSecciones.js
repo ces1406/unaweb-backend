@@ -32,14 +32,15 @@ class RutasSecciones {
             let temas = await Temas.findAll({
                 where:{idSeccion:req.params.idSec},
                 order:[['fechaCreacion','DESC']],
-                offset:(req.params.pagActiva-1)*req.params.cantTems,
-                limit:parseInt(req.params.cantTems,10)
+                offset:(req.params.pagActiva-1)*req.params.cantTemas,
+                limit:parseInt(req.params.cantTemas,10)
             });
+            let cantTemas = await Temas.count({where:{idSeccion:req.params.idSec}});
             for await (let tema of temas) {      
                 tema.comentarioInicial = validator.unescape(tema.comentarioInicial);
                 tema.dataValues.cantComentarios = await Comentarios.count({where:{idTema:tema.idTema}});
             }
-            res.status(200).json({temas})
+            res.status(200).json({temas,cantTemas})
         } catch (error) {
             res.status(500).send();            
         }
@@ -55,7 +56,7 @@ class RutasSecciones {
     routes(){
         this.router.get('/', this.getSections);
         this.router.get('/checksection/:idSec/:nombSec',this.checkSection);
-        this.router.get('/:idSec/:pagActiva/:cantTems', this.getSection);        
+        this.router.get('/:idSec/:pagActiva/:cantTemas', this.getSection);        
     }
 }
 

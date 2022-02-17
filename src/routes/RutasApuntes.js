@@ -1,5 +1,4 @@
 const {Router} = require('express');
-const path = require('path');
 const {start,Apuntes, Usuarios} = require('../model/db');
 const {sanitizaApunte, sanitizaLink} = require('../middlewares/sanitize');
 const {validaApunte, validaEnlace} = require('../middlewares/validate');
@@ -20,23 +19,37 @@ class RutasApuntes {
                 res.statusMessage='Ya existe un enlace a ese apunte';
                 res.status(400).send();
             }else{
-                var apunte = await Apuntes.create({
+                let apunte = await Apuntes.create({
                     autores:req.body.autor,
                     materia:req.body.materia,
                     titulo:req.body.titulo,
                     dirurl:req.body.link,
                     catedra:req.body.catedra,
                     usuario:req.usuario.idUser,
-                    fechaSubida: (new Date()).toJSON().slice(0,19).replace('T',' ')
+                    fechaSubida: (new Date()).toLocaleString('sv-SE',{timeZone:'America/Argentina/Buenos_Aires'})
                 });
-                res.status(201).send({msg:'El apunte fue subido'}); 
+                res.status(201).send(apunte.dataValues); 
             }
         } catch (error) {
             res.status(500).send();
         }
     }
+    sanitizarValidar = (req,res,next)=>{        
+        if(req.query.titulo != undefined){req.query.titulo = validator.escape(validator.trim(req.query.titulo));}else{req.query.titulo=''}
+        if(req.query.materia != undefined) {req.query.materia = validator.escape(validator.trim(req.query.materia));}else{req.query.materia=''}
+        if(req.query.catedra != undefined) {req.query.catedra = validator.escape(validator.trim(req.query.catedra));}else{req.query.catedra=''}
+        if(req.query.autor != undefined) {req.query.autor = validator.escape(validator.trim(req.query.autor));}else{req.query.autor=''}
+        if ((req.query.titulo != undefined && req.query.titulo.length > 100) || 
+            (req.query.autor != undefined && req.query.autor.length > 120) || 
+            (req.query.materia != undefined && req.query.materia.length > 120) || 
+            (req.query.catedra != undefined && req.query.catedra.length > 100) ) {
+            res.status(404).send({ msj: 'Algunos campos son demasiado extensos' })        
+        } else {
+            next();
+        }
+    }
     search = async (req,res) => {
-        try {
+        try{
             let rta = await Apuntes.findAll({
                 include:[{
                     model:Usuarios,
@@ -45,10 +58,10 @@ class RutasApuntes {
                 }],
                 where:{
                     [Op.and]:[
-                        {autores:{[Op.like]:'%'+req.body.autor+'%'}},
-                        {materia:{[Op.like]:'%'+req.body.materia+'%'}},
-                        {titulo:{[Op.like]:'%'+req.body.titulo+'%'}},
-                        {catedra:{[Op.like]:'%'+req.body.catedra+'%'}}
+                        {autores:{[Op.like]:'%'+req.query.autor+'%'}},
+                        {materia:{[Op.like]:'%'+req.query.materia+'%'}},
+                        {titulo:{[Op.like]:'%'+req.query.titulo+'%'}},
+                        {catedra:{[Op.like]:'%'+req.query.catedra+'%'}}
                     ]
                 },
                 order:[['fechaSubida','ASC']],
@@ -65,30 +78,34 @@ class RutasApuntes {
             let cantApunt = await Apuntes.count(
                 {where:{
                     [Op.and]:[
-                        {autores:{[Op.like]:'%'+req.body.autor+'%'}},
-                        {materia:{[Op.like]:'%'+req.body.materia+'%'}},
-                        {titulo:{[Op.like]:'%'+req.body.titulo+'%'}},
-                        {catedra:{[Op.like]:'%'+req.body.catedra+'%'}}
+                        {autores:{[Op.like]:'%'+req.query.autor+'%'}},
+                        {materia:{[Op.like]:'%'+req.query.materia+'%'}},
+                        {titulo:{[Op.like]:'%'+req.query.titulo+'%'}},
+                        {catedra:{[Op.like]:'%'+req.query.catedra+'%'}}
                     ]
                 }
             });
-            return res.status(201).json({apuntes:rta,cantApuntes:cantApunt});
+            return res.status(200).json({apuntes:rta,cantApuntes:cantApunt});
         } catch (err) {
             res.status(500).send();
         }
     }
     delete = async (req,res) => {
         try {
-            await Apuntes.destroy({where:{idApunte:req.body.idApunte}});
-            res.status(201).send({ msj: 'el apunte se elimino' });
+            await Apuntes.destroy({where:{idApunte:req.params.idapunte}});
+            res.status(202).send({ msj: 'el apunte se elimino' });
         } catch (error) {
             res.status(500).send();
         }
     }
     routes(){
         this.router.post('/', sanitizaLink, sanitizaApunte, validaApunte, validaEnlace, autenticacionjwt, this.uploadApunte);
-        this.router.post('/search/:pagActiva/:cantPorPag', sanitizaApunte, validaApunte, this.search);
-        this.router.post('/delapunte', isAdmin, this.delete); 
+        /* this.router.get('/:pagActiva/:cantPorPag/:materia/:titulo/:catedra/:autores', this.sanitizarValidar, this.search);
+        this.router.get('/:pagActiva/:cantPorPag/:materia/:titulo/:catedra', this.sanitizarValidar, this.search);
+        this.router.get('/:pagActiva/:cantPorPag/:materia/:titulo', this.sanitizarValidar, this.search);
+        this.router.get('/:pagActiva/:cantPorPag/:materia', this.sanitizarValidar, this.search); */
+        this.router.get('/:pagActiva/:cantPorPag/', this.sanitizarValidar, this.search);
+        this.router.delete('/:idapunte', autenticacionjwt, isAdmin, this.delete); 
     }
 }
 
