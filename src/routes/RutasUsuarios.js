@@ -81,13 +81,13 @@ class RutasUsuarios {
                     contrasenia:hash,
                     mail:req.body.mail,
                     rol:'USER',
-                    fechaIngreso: (new Date()).toJSON().slice(0,19).replace('T',' '),
+                    fechaIngreso: (new Date()).toLocaleString('sv-SE',{timeZone:'America/Argentina/Buenos_Aires'}),
                     estadoCuenta:'SINCONF',
                     token: token,
                     dirImg: req.file? ('user-'+req.body.apodo+path.extname(req.file.originalname).toLowerCase() ): null,
                     redSocial1:req.body.facebook,
                     redSocial2:req.body.blog,
-                    redSocial3:req.body.youtube });
+                    redSocial3:req.body.youtube }); 
                 return {user,token};
             })
             .then(rta => {                
@@ -153,7 +153,7 @@ class RutasUsuarios {
         try{
             if( await this.nicknameExist(req.body.apodo)) throw ({code:400});
             let user = await Usuarios.findAll({where:{apodo:req.body.apodo}});
-            bcrypt.compare(req.body.password,user[0].contrasenia,(err,rta)=>{
+            bcrypt.compare(req.body.password,user[0].contrasenia,(err,rta)=>{                
                 if(rta){
                     if(err) throw err;
                     if(user[0].estadoCuenta === 'HABILIT'){
@@ -161,9 +161,9 @@ class RutasUsuarios {
                             apodo:user[0].apodo, 
                             idUsuario:user[0].idUsuario,
                             mail:validator.unescape(user[0].mail),
-                            redSocial1: (user[0].redSocial1 === null) ? null : validator.unescape(user[0].redSocial1), 
-                            redSocial2: (user[0].redSocial2 === null) ? null : validator.unescape(user[0].redSocial2),
-                            redSocial3: (user[0].redSocial3 === null) ? null : validator.unescape(user[0].redSocial3), 
+                            redSocial1: (user[0].redSocial1 === null) ? null : validator.unescape(validator.unescape(user[0].redSocial1)), 
+                            redSocial2: (user[0].redSocial2 === null) ? null : validator.unescape(validator.unescape(user[0].redSocial2)),
+                            redSocial3: (user[0].redSocial3 === null) ? null : validator.unescape(validator.unescape(user[0].redSocial3)), 
                             dirImg: user[0].dirImg, rol: user[0].rol
                         },token: this.crearToken(user[0].idUsuario, user[0].apodo,user[0].rol), msj: 'bienvenido a unaWeb'})
                     }else{
@@ -216,7 +216,7 @@ class RutasUsuarios {
                                 fs.unlinkSync(path.join(__dirname, '../../usersimgs/user-' + req.usuario.apodo+'.jpeg'));
                             }else if(fs.existsSync(path.join(__dirname, '../../usersimgs/user-' +req.usuario.apodo+'.jpg'))){
                                 fs.unlinkSync(path.join(__dirname, '../../usersimgs/user-' + req.usuario.apodo+'.jpg'));
-                            }else if(fs.existsSync(path.join(__dirname, '../../usersimgs/user-' +req.usuasrio.apodo+'.png'))){
+                            }else if(fs.existsSync(path.join(__dirname, '../../usersimgs/user-' +req.usuario.apodo+'.png'))){
                                 fs.unlinkSync(path.join(__dirname, '../../usersimgs/user-' + req.usuario.apodo+'.png'));
                             }
                             fs.rename(path.join(__dirname,  '../../usersimgs/' + req.file.filename),
@@ -230,6 +230,9 @@ class RutasUsuarios {
                                         res.status(201).send({ msj: 'La imagen fue reemplazada con exito' })
                                     }
                                 });
+                        }else{
+                            res.statusMessage = 'Tuvimos un inconviente, intenta mas tarde';
+                            res.status(500).send();
                         }                        
                     break;
                 case 'pass': 
@@ -345,9 +348,9 @@ class RutasUsuarios {
                     apodo:user.apodo,
                     idUsuario:user.idUsuario,
                     estadoCuenta:user.estadoCuenta,
-                    redSocial1:(user.redSocial1 == undefined) ? null : validator.unescape(user.redSocial1),
-                    redSocial2:(user.redSocial2 == undefined) ? null : validator.unescape(user.redSocial2),
-                    redSocial3:(user.redSocial3 == undefined) ? null : validator.unescape(user.redSocial3),
+                    redSocial1:(user.redSocial1 == undefined) ? null :  validator.unescape(validator.unescape(user.redSocial1)),
+                    redSocial2:(user.redSocial2 == undefined) ? null :  validator.unescape(validator.unescape(user.redSocial2)),
+                    redSocial3:(user.redSocial3 == undefined) ? null :  validator.unescape(validator.unescape(user.redSocial3)),
                     fechaIngreso:user.fechaIngreso
                 })  
             }
