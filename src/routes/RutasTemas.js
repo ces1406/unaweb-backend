@@ -185,8 +185,6 @@ class RutasTemas {
         }
     }
     deleteComent = async (req,res)=>{
-        console.log('RutasTEmas->deleteComent-idComentario: ',req.params.idcomentario);
-        //return res.status(202).send({ msj: 'Comentario eliminado' })
         try {
             await Comentarios.destroy({
                 where:{idComentario:req.params.idcomentario}
