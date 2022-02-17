@@ -346,6 +346,7 @@ class RutasUsuarios {
             }else{
                 return res.status(200).json({
                     apodo:user.apodo,
+                    mail:user.mail,
                     idUsuario:user.idUsuario,
                     estadoCuenta:user.estadoCuenta,
                     redSocial1:(user.redSocial1 == undefined) ? null :  validator.unescape(validator.unescape(user.redSocial1)),
