@@ -77,7 +77,7 @@ class RutasTemas {
                 palabraClave2:req.body.pal2,
                 palabraClave3:req.body.pal3,
                 comentarioInicial:req.body.msj,
-                fechaCreacion:(new Date()).toJSON().slice(0,19).replace('T',' ')
+                fechaCreacion:(new Date()).toLocaleString('sv-SE',{timeZone:'America/Argentina/Buenos_Aires'})
             })
             res.status(201).send({ msj: 'el tema fue creado' })
         } catch (error) {
@@ -100,7 +100,7 @@ class RutasTemas {
                 contenido:req.body.comentario,
                 idTema:req.body.idTema,
                 idUsuario:req.usuario.idUser,
-                fechaHora:(new Date()).toJSON().slice(0,19).replace('T',' ')
+                fechaHora:(new Date()).toLocaleString('sv-SE',{timeZone:'America/Argentina/Buenos_Aires'})
             })
             res.status(201).send({ msg: 'tema comentado' })            
         } catch (error) {

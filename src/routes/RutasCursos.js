@@ -23,14 +23,14 @@ class RutasCursos {
                     {catedra:req.body.catedra}
                 ]
             }}) ===0){
-                await Catedras.create({
+                let curso=await Catedras.create({
                     materia:req.body.materia,
                     catedra:req.body.catedra,
                     profesores:req.body.profesor,
                     idAutor:req.body.idAutor,
-                    fechaHora: (new Date()).toJSON().slice(0,19).replace('T',' ')
+                    fechaHora: (new Date()).toLocaleString('sv-SE',{timeZone:'America/Argentina/Buenos_Aires'})
                 });
-                res.status(201).send({ msg: 'el foro se creó' })
+                res.status(201).send(curso.dataValues);
             }else{
                 res.statusMessage ='Ya existe un foro para esa materia, catedra y profesor/es' 
                 res.status(400).send()
@@ -64,7 +64,7 @@ class RutasCursos {
                 contenido:req.body.contenido,
                 idCatedra:req.body.idCatedra,
                 idUsuario:req.usuario.idUser,
-                fechaHora: (new Date()).toJSON().slice(0,19).replace('T',' ')
+                fechaHora: (new Date()).toLocaleString('sv-SE',{timeZone:'America/Argentina/Buenos_Aires'})
             })
             res.status(201).send({msg:'se cargo tu opinion'});
         } catch (error) {
