@@ -2,7 +2,11 @@ const {Sequelize, DataTypes} = require('sequelize');
 
 const sequelize = new Sequelize(process.env.DATABASE_NAME,process.env.DATABASE_USER,process.env.DATABASE_PASS,{
     host: process.env.DATABASE_HOSTNAME,
-    dialect: 'mysql'
+    dialect: 'mysql',
+    timezone:'America/Argentina/Buenos_Aires',
+    dialectOptions:{
+        timezone:'local'
+    }
 });
 const Usuarios = sequelize.define('Usuario',{
     idUsuario:{type: DataTypes.INTEGER, allowNull:false, autoIncrement:true ,unique:true, primaryKey:true},
