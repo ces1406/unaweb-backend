@@ -12,7 +12,7 @@ const filterImg = (req, file, cb) => {
     if (mimeTypes && extension) {
         return cb(null, true)
     } else {
-        return cb("Tipo de archivo de la imagen no soportado", false)
+        return cb("El tipo de archivo de la imagen no esta soportado", false)
     }
 };
 
