@@ -2,17 +2,17 @@ const validator = require('validator');
 
 const sanitizaRegistro = (req,res,next)=>{
     req.body.apodo = validator.escape(validator.trim(req.body.apodo));
-    if(req.body.facebook!=undefined){
+    if(req.body.facebook!=undefined && req.body.facebook !=''){
         req.body.facebook =(validator.trim(req.body.facebook)).startsWith('http')? validator.escape(validator.trim(req.body.facebook))
                                                                                 :validator.escape('http://'+validator.trim(req.body.facebook));
         req.body.facebook = validator.escape(validator.trim(req.body.facebook));
     }
-    if(req.body.blog!=undefined){
+    if(req.body.blog!=undefined && req.body.blog !=''){
         req.body.blog =(validator.trim(req.body.blog)).startsWith('http')? validator.escape(validator.trim(req.body.blog))
                                                                         :validator.escape('http://'+validator.trim(req.body.blog));
         req.body.blog = validator.escape(validator.trim(req.body.blog));
     }
-    if(req.body.youtube!=undefined){
+    if(req.body.youtube!=undefined && req.body.youtube !=''){
         req.body.youtube = (validator.trim(req.body.youtube)).startsWith('http')?   validator.escape(validator.trim(req.body.youtube))
                                                                                 :validator.escape('http://'+validator.trim(req.body.youtube));
         req.body.youtube = validator.escape(validator.trim(req.body.youtube));
