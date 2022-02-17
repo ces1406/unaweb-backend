@@ -184,6 +184,18 @@ class RutasTemas {
             res.status(500).send();            
         }
     }
+    deleteComent = async (req,res)=>{
+        console.log('RutasTEmas->deleteComent-idComentario: ',req.params.idcomentario);
+        //return res.status(202).send({ msj: 'Comentario eliminado' })
+        try {
+            await Comentarios.destroy({
+                where:{idComentario:req.params.idcomentario}
+            });
+            res.status(201).send({ msj: 'Comentario eliminado' });
+        } catch (err) {
+            return res.status(500).send();
+        }       
+    }
     routes(){
         this.router.get('/ultimoscomentarios',this.ultimosComentarios);
         this.router.get('/:idTema', this.getTema);
@@ -192,6 +204,7 @@ class RutasTemas {
         this.router.post('/',sanitizaTema,validaTema,autenticacionjwt,this.postTema);
         this.router.post('/deleteTema',autenticacionjwt,isAdmin,this.deletTema);
         this.router.post('/comentar',sanitizaComentario,validaComentario,autenticacionjwt,this.comentar);
+        this.router.delete('/comentarios/:idcomentario',autenticacionjwt, isAdmin, this.deleteComent);
     }
 }
 
