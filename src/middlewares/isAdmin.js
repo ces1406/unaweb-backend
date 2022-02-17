@@ -1,5 +1,5 @@
 const isAdmin = (req,res,next)=>{
-    if(req.usuario.rol==='ADMIN'){
+    if(req.usuario.rol==='ADMI'){
         next();
     }else{
         res.status(403).send();
