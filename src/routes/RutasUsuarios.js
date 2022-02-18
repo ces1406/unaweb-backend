@@ -56,7 +56,7 @@ class RutasUsuarios {
             if (err) {
                 res.statusMessage = (err.code === 'LIMIT_FILE_SIZE') ? 'la imagen es demasiado grande (debe ser menor a 10 Kb)' :
                     'El tipo de imagen y su extension son erroneos (deben ser jpg, jpeg, png, o webp)';
-                res.status(409).send(err.msg)
+                res.status(409).send({err})
                 next(err)
             } else {
                 next();
