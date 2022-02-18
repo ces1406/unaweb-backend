@@ -38,7 +38,7 @@ class Applicacion {
         this.app.use('/temas',rutasTemas.router);
     }
     handleCors = (req,res,next)=>{
-        res.set('Access-Control-Allow-Origin','*');
+        res.set('Access-Control-Allow-Origin','https://ces1406.github.io/unaweb-frontend');
         if(req.method==='OPTIONS'&&req.headers['origin']&&req.headers['access-control-request-method']){
             res.set('Access-Control-Allow-Methods','POST,DELETE,UPDATE');
             res.set('Access-Control-Allow-Headers','Content-Type, Authorization');
