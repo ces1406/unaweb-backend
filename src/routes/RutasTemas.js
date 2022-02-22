@@ -136,7 +136,9 @@ class RutasTemas {
                 com.dataValues.mili=com.fechaHora.getTime();
                 if(com.idTema==undefined){
                     com.dataValues.idSeccion=idSeccionCat.idSeccion;
-                    com.dataValues.origen=await Catedras.findOne({where:{idCatedra:com.idCatedra}});
+                    let catedra =await Catedras.findOne({where:{idCatedra:com.idCatedra}});
+                    catedra.dataValues.materia = validator.unescape(catedra.dataValues.materia);                                
+                    com.dataValues.origen= catedra;
                 }else{
                     com.dataValues.origen=await Temas.findOne({
                         include:[{

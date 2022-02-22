@@ -53,6 +53,9 @@ class RutasCursos {
                 offset:(req.params.pagActiva-1)*req.params.cantPorPag,
                 limit:parseInt(req.params.cantPorPag,10)
             });
+            for (const cat of rta) {
+                cat.dataValues.materia = validator.unescape(cat.dataValues.materia);                
+            }
             res.status(201).json(rta);
         } catch (error) {
             res.status(500).send();
@@ -109,6 +112,7 @@ class RutasCursos {
     getCatedra = async (req,res)=>{
         try {
             let rta = await Catedras.findOne({where:{idCatedra:req.params.idCatedra}});
+            rta.dataValues.materia = validator.unescape(rta.dataValues.materia);
             rta.dataValues.cantOpiniones = await ComentariosCatedra.count({where:{idCatedra:req.params.idCatedra}});
             return res.status(200).json(rta)
         } catch (error) {
