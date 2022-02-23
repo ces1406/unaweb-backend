@@ -54,9 +54,7 @@ const validaEnlace = (req,res,next) => {
 const validaForo = (req, res, next) => {
     if (req.body.profesor > 100 || req.body.materia.length > 120 || req.body.catedra.length > 60) {
         res.status(500).send({ msj: 'algunos campos son demasiado extensos' })
-    } else if(req.body.materia.length==0||req.body.materia==null){
-        res.status(500).send({msj:'completa con una materia'})
-    }else {
+    } else {
         next();
     }
 }
